@@ -1,0 +1,1538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sprite Forge | Animation Studio</title>
+<style>
+  :root {
+    --bg-primary: #0a0a0f;
+    --bg-secondary: #12121a;
+    --bg-tertiary: #1a1a26;
+    --bg-card: #14141f;
+    --border: #2a2a3a;
+    --border-hover: #3a3a5a;
+    --text-primary: #e8e8f0;
+    --text-secondary: #8888a0;
+    --text-muted: #55556a;
+    --accent: #6c5ce7;
+    --accent-hover: #7d6ff0;
+    --accent-glow: rgba(108, 92, 231, 0.3);
+    --success: #00b894;
+    --warning: #fdcb6e;
+    --danger: #e74c3c;
+    --cyan: #00cec9;
+
+    /* Left panel light theme */
+    --lp-bg: #ffffff;
+    --lp-bg-secondary: #f5f5f7;
+    --lp-bg-tertiary: #eaeaef;
+    --lp-border: #d0d0d8;
+    --lp-border-hover: #b0b0c0;
+    --lp-text-primary: #1a1a2e;
+    --lp-text-secondary: #555570;
+    --lp-text-muted: #8888a0;
+    --lp-input-bg: #f0f0f5;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-secondary);
+  }
+  .header .logo {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .header .logo span { color: var(--text-secondary); font-weight: 400; font-size: 14px; }
+
+  /* Layout */
+  .app-layout {
+    display: grid;
+    grid-template-columns: 320px 1fr 280px;
+    height: calc(100vh - 57px);
+  }
+
+  /* Panels */
+  .panel {
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    background: var(--bg-secondary);
+  }
+  .panel:last-child { border-right: none; }
+  .panel-section {
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .panel-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    font-weight: 600;
+  }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 2px;
+    padding: 8px;
+    background: var(--bg-primary);
+  }
+  .tab {
+    flex: 1;
+    padding: 8px 12px;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+  .tab.active {
+    background: var(--accent);
+    color: white;
+  }
+  .tab:hover:not(.active) { background: var(--bg-tertiary); }
+
+  /* Drop zone */
+  .drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: 10px;
+    padding: 32px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .drop-zone:hover, .drop-zone.dragover {
+    border-color: var(--accent);
+    background: rgba(108, 92, 231, 0.05);
+  }
+  .drop-zone .icon { font-size: 32px; margin-bottom: 8px; }
+  .drop-zone p { color: var(--text-secondary); font-size: 13px; }
+  .drop-zone small { color: var(--text-muted); font-size: 11px; }
+  .drop-zone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  /* Form elements */
+  .form-group {
+    margin-bottom: 10px;
+  }
+  .form-group label {
+    display: block;
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+    font-weight: 500;
+  }
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .form-row-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+  }
+  input[type="number"], input[type="text"], select {
+    width: 100%;
+    padding: 7px 10px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  input[type="number"]:focus, input[type="text"]:focus, select:focus {
+    border-color: var(--accent);
+  }
+  input[type="color"] {
+    width: 100%;
+    height: 32px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg-primary);
+    cursor: pointer;
+    padding: 2px;
+  }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+    width: 100%;
+  }
+  .btn:hover { border-color: var(--border-hover); background: var(--bg-card); }
+  .btn-primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+  .btn-primary:hover {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+    box-shadow: 0 0 20px var(--accent-glow);
+  }
+  .btn-danger { border-color: var(--danger); color: var(--danger); }
+  .btn-danger:hover { background: rgba(231, 76, 60, 0.1); }
+  .btn-sm { padding: 5px 10px; font-size: 12px; width: auto; }
+
+  /* Checkbox / Toggle */
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 0;
+  }
+  .toggle-row span { font-size: 13px; color: var(--text-secondary); }
+  .toggle {
+    position: relative;
+    width: 36px;
+    height: 20px;
+  }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .toggle-slider::before {
+    content: '';
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    left: 2px;
+    top: 2px;
+    background: var(--text-secondary);
+    border-radius: 50%;
+    transition: all 0.3s;
+  }
+  .toggle input:checked + .toggle-slider {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .toggle input:checked + .toggle-slider::before {
+    transform: translateX(16px);
+    background: white;
+  }
+
+  /* Preview area */
+  .preview-area {
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-primary);
+    position: relative;
+  }
+  .preview-canvas-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .preview-canvas-wrap.checkerboard {
+    background-image:
+      linear-gradient(45deg, #1a1a26 25%, transparent 25%),
+      linear-gradient(-45deg, #1a1a26 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #1a1a26 75%),
+      linear-gradient(-45deg, transparent 75%, #1a1a26 75%);
+    background-size: 20px 20px;
+    background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+  }
+  #previewCanvas {
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+  }
+
+  /* Sheet preview overlay */
+  .sheet-preview-container {
+    position: relative;
+    display: inline-block;
+  }
+  .sheet-preview-container img {
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    display: block;
+  }
+  .grid-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+  }
+
+  /* Zoom controls */
+  .zoom-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-top: 1px solid var(--border);
+    background: var(--bg-secondary);
+  }
+  .zoom-controls button {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .zoom-controls button:hover { border-color: var(--border-hover); }
+  .zoom-controls span { font-size: 12px; color: var(--text-secondary); min-width: 40px; text-align: center; }
+
+  /* Timeline */
+  .timeline {
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+    background: var(--bg-secondary);
+  }
+  .timeline-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 8px;
+  }
+  .timeline-controls button {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    width: 32px;
+    height: 28px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+  .timeline-controls button:hover { border-color: var(--accent); color: var(--accent); }
+  .timeline-controls button.active { background: var(--accent); border-color: var(--accent); color: white; }
+  .timeline-controls .spacer { flex: 1; }
+  .timeline-controls .fps-control {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+  .timeline-controls .fps-control input {
+    width: 50px;
+    text-align: center;
+  }
+  .frame-info {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-align: center;
+  }
+
+  /* Frame strip */
+  .frame-strip {
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+    padding: 8px 0;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  .frame-strip::-webkit-scrollbar { height: 6px; }
+  .frame-strip::-webkit-scrollbar-track { background: transparent; }
+  .frame-strip::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  .frame-thumb {
+    min-width: 48px;
+    height: 48px;
+    border: 2px solid var(--border);
+    border-radius: 4px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s;
+    background: var(--bg-primary);
+  }
+  .frame-thumb:hover { border-color: var(--border-hover); }
+  .frame-thumb.active { border-color: var(--accent); box-shadow: 0 0 8px var(--accent-glow); }
+  .frame-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    image-rendering: pixelated;
+  }
+  .frame-thumb .frame-num {
+    position: absolute;
+    bottom: 1px;
+    right: 2px;
+    font-size: 9px;
+    color: var(--text-muted);
+    background: rgba(0,0,0,0.6);
+    padding: 0 3px;
+    border-radius: 2px;
+  }
+  .frame-thumb .delete-frame {
+    position: absolute;
+    top: 1px;
+    right: 1px;
+    width: 14px;
+    height: 14px;
+    background: var(--danger);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 9px;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+  .frame-thumb:hover .delete-frame { display: flex; }
+
+  /* Frames list in left panel */
+  .frames-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+  .frame-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    cursor: grab;
+    transition: all 0.2s;
+  }
+  .frame-item:hover { border-color: var(--border-hover); }
+  .frame-item img {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+    image-rendering: pixelated;
+    border-radius: 3px;
+    background: var(--bg-tertiary);
+  }
+  .frame-item span { font-size: 12px; color: var(--text-secondary); }
+  .frame-item .frame-actions { margin-left: auto; display: flex; gap: 4px; }
+  .frame-item button {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .frame-item button:hover { border-color: var(--danger); color: var(--danger); }
+
+  /* Sequences */
+  .sequence-item {
+    padding: 10px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .sequence-item:hover { border-color: var(--border-hover); }
+  .sequence-item.active { border-color: var(--accent); }
+  .sequence-item .seq-name { font-size: 13px; font-weight: 500; }
+  .sequence-item .seq-info { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  /* Spacing info banner */
+  .info-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px;
+    background: rgba(108, 92, 231, 0.08);
+    border: 1px solid rgba(108, 92, 231, 0.2);
+    border-radius: 6px;
+    margin-bottom: 12px;
+    font-size: 11px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+  .info-banner .info-icon {
+    font-size: 14px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  /* Section header with collapse */
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    user-select: none;
+  }
+  .section-header .collapse-icon {
+    font-size: 10px;
+    color: var(--text-muted);
+    transition: transform 0.2s;
+  }
+  .section-header.collapsed .collapse-icon { transform: rotate(-90deg); }
+  .section-content { overflow: hidden; transition: max-height 0.3s; }
+
+  /* Modal */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 100;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-backdrop.show { display: flex; }
+  .modal {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    width: 400px;
+    max-width: 90vw;
+  }
+  .modal h3 { font-size: 16px; margin-bottom: 16px; }
+  .modal-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+    justify-content: flex-end;
+  }
+  .modal-actions .btn { width: auto; }
+
+  /* Export section */
+  .export-option {
+    padding: 8px 10px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 13px;
+    text-align: center;
+  }
+  .export-option:hover { border-color: var(--accent); }
+
+  /* Status / empty states */
+  .empty-state {
+    text-align: center;
+    padding: 24px 16px;
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+  .empty-state .icon { font-size: 28px; margin-bottom: 8px; }
+
+  /* Scrollbar */
+  .panel::-webkit-scrollbar { width: 6px; }
+  .panel::-webkit-scrollbar-track { background: transparent; }
+  .panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .app-layout { grid-template-columns: 280px 1fr; }
+    .panel:last-child { display: none; }
+  }
+  @media (max-width: 768px) {
+    .app-layout { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+  }
+
+  /* ── Left Panel Light Theme ── */
+  #leftPanel {
+    background: var(--lp-bg);
+    border-right-color: var(--lp-border);
+  }
+  #leftPanel .tabs { background: var(--lp-bg-secondary); }
+  #leftPanel .tab { color: var(--lp-text-secondary); }
+  #leftPanel .tab:hover:not(.active) { background: var(--lp-bg-tertiary); }
+  #leftPanel .tab.active { background: var(--accent); color: white; }
+  #leftPanel .panel-section { border-bottom-color: var(--lp-border); }
+  #leftPanel .panel-title { color: var(--lp-text-muted); }
+  #leftPanel .drop-zone { border-color: var(--lp-border); }
+  #leftPanel .drop-zone:hover,
+  #leftPanel .drop-zone.dragover { border-color: var(--accent); background: rgba(108, 92, 231, 0.06); }
+  #leftPanel .drop-zone p { color: var(--lp-text-secondary); }
+  #leftPanel .drop-zone small { color: var(--lp-text-muted); }
+  #leftPanel .form-group label { color: var(--lp-text-secondary); }
+  #leftPanel input[type="number"],
+  #leftPanel input[type="text"],
+  #leftPanel select {
+    background: var(--lp-input-bg);
+    border-color: var(--lp-border);
+    color: var(--lp-text-primary);
+  }
+  #leftPanel input[type="number"]:focus,
+  #leftPanel input[type="text"]:focus,
+  #leftPanel select:focus { border-color: var(--accent); }
+  #leftPanel .btn {
+    background: var(--lp-bg-tertiary);
+    border-color: var(--lp-border);
+    color: var(--lp-text-primary);
+  }
+  #leftPanel .btn:hover { border-color: var(--lp-border-hover); background: var(--lp-bg-secondary); }
+  #leftPanel .btn-primary { background: var(--accent); border-color: var(--accent); color: white; }
+  #leftPanel .btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+  #leftPanel .btn-danger { border-color: var(--danger); color: var(--danger); background: transparent; }
+  #leftPanel .info-banner {
+    background: rgba(108, 92, 231, 0.06);
+    border-color: rgba(108, 92, 231, 0.2);
+    color: var(--lp-text-secondary);
+  }
+  #leftPanel .section-header .collapse-icon { color: var(--lp-text-muted); }
+  #leftPanel .frame-item {
+    background: var(--lp-input-bg);
+    border-color: var(--lp-border);
+  }
+  #leftPanel .frame-item:hover { border-color: var(--lp-border-hover); }
+  #leftPanel .frame-item span { color: var(--lp-text-secondary); }
+  #leftPanel .frame-item button { border-color: var(--lp-border); color: var(--lp-text-muted); }
+  #leftPanel .empty-state { color: var(--lp-text-muted); }
+  #leftPanel::-webkit-scrollbar-thumb { background: var(--lp-border); }
+
+  /* ── Right Panel Light Theme ── */
+  #rightPanel {
+    background: var(--lp-bg);
+    border-left-color: var(--lp-border);
+  }
+  #rightPanel .panel-section { border-bottom-color: var(--lp-border); }
+  #rightPanel .panel-title { color: var(--lp-text-muted); }
+  #rightPanel .form-group label { color: var(--lp-text-secondary); }
+  #rightPanel input[type="number"],
+  #rightPanel input[type="text"],
+  #rightPanel select {
+    background: var(--lp-input-bg);
+    border-color: var(--lp-border);
+    color: var(--lp-text-primary);
+  }
+  #rightPanel input[type="number"]:focus,
+  #rightPanel input[type="text"]:focus,
+  #rightPanel select:focus { border-color: var(--accent); }
+  #rightPanel input[type="color"] {
+    border-color: var(--lp-border);
+    background: var(--lp-input-bg);
+  }
+  #rightPanel .toggle-row span { color: var(--lp-text-secondary); }
+  #rightPanel .toggle-slider {
+    background: var(--lp-bg-tertiary);
+    border-color: var(--lp-border);
+  }
+  #rightPanel .toggle-slider::before { background: var(--lp-text-muted); }
+  #rightPanel .btn {
+    background: var(--lp-bg-tertiary);
+    border-color: var(--lp-border);
+    color: var(--lp-text-primary);
+  }
+  #rightPanel .btn:hover { border-color: var(--lp-border-hover); background: var(--lp-bg-secondary); }
+  #rightPanel .btn-primary { background: var(--accent); border-color: var(--accent); color: white; }
+  #rightPanel .btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+  #rightPanel .sequence-item {
+    background: var(--lp-input-bg);
+    border-color: var(--lp-border);
+  }
+  #rightPanel .sequence-item:hover { border-color: var(--lp-border-hover); }
+  #rightPanel .sequence-item.active { border-color: var(--accent); }
+  #rightPanel .sequence-item .seq-name { color: var(--lp-text-primary); }
+  #rightPanel .sequence-item .seq-info { color: var(--lp-text-muted); }
+  #rightPanel::-webkit-scrollbar-thumb { background: var(--lp-border); }
+
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">
+    ⬡ Sprite Forge <span>Animation Studio</span>
+  </div>
+</div>
+
+<div class="app-layout">
+  <!-- LEFT PANEL -->
+  <div class="panel" id="leftPanel">
+    <!-- Tab switcher -->
+    <div class="tabs">
+      <button class="tab active" data-tab="sheet" onclick="switchTab('sheet')">Sheet</button>
+      <button class="tab" data-tab="frames" onclick="switchTab('frames')">Frames</button>
+    </div>
+
+    <!-- SHEET TAB -->
+    <div id="tabSheet">
+      <div class="panel-section">
+        <div class="drop-zone" id="sheetDropZone">
+          <input type="file" accept="image/*" id="sheetFileInput" onchange="handleSheetUpload(event)">
+          <div class="icon">📜</div>
+          <p>Drop Sprite Sheet Here</p>
+          <small>or click to browse</small>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-title">Sheet Configuration</div>
+
+        <div class="form-row" style="margin-bottom: 8px;">
+          <div class="form-group">
+            <label>Columns</label>
+            <input type="number" id="sheetCols" value="4" min="1" oninput="updateSheetPreview()">
+          </div>
+          <div class="form-group">
+            <label>Rows</label>
+            <input type="number" id="sheetRows" value="4" min="1" oninput="updateSheetPreview()">
+          </div>
+        </div>
+
+        <div class="form-row" style="margin-bottom: 8px;">
+          <div class="form-group">
+            <label>Frame Width</label>
+            <input type="number" id="frameWidth" value="64" min="1" oninput="updateSheetPreview()">
+          </div>
+          <div class="form-group">
+            <label>Frame Height</label>
+            <input type="number" id="frameHeight" value="64" min="1" oninput="updateSheetPreview()">
+          </div>
+        </div>
+      </div>
+
+      <!-- NEW: Spacing & Offset Section -->
+      <div class="panel-section">
+        <div class="section-header" onclick="toggleSection(this)" id="spacingHeader">
+          <div class="panel-title" style="margin-bottom:0;">Spacing &amp; Offset</div>
+          <span class="collapse-icon">▼</span>
+        </div>
+        <div class="section-content" id="spacingSection">
+          <div class="info-banner" style="margin-top: 10px;">
+            <span class="info-icon">💡</span>
+            <span>Use these if your sprite sheet has gaps between frames or a border around the edges.</span>
+          </div>
+
+          <div class="form-row" style="margin-bottom: 8px;">
+            <div class="form-group">
+              <label>Spacing X</label>
+              <input type="number" id="spacingX" value="0" min="0" oninput="updateSheetPreview()" title="Horizontal gap between frames (px)">
+            </div>
+            <div class="form-group">
+              <label>Spacing Y</label>
+              <input type="number" id="spacingY" value="0" min="0" oninput="updateSheetPreview()" title="Vertical gap between frames (px)">
+            </div>
+          </div>
+
+          <div class="form-row" style="margin-bottom: 8px;">
+            <div class="form-group">
+              <label>Offset X</label>
+              <input type="number" id="offsetX" value="0" min="0" oninput="updateSheetPreview()" title="Left margin before first frame (px)">
+            </div>
+            <div class="form-group">
+              <label>Offset Y</label>
+              <input type="number" id="offsetY" value="0" min="0" oninput="updateSheetPreview()" title="Top margin before first frame (px)">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <button class="btn btn-primary" onclick="extractFrames()">⚡ Extract Frames</button>
+        <div id="sheetPreviewContainer" style="margin-top: 12px; display: none;">
+          <div class="panel-title">Sheet Preview</div>
+          <div style="overflow: auto; max-height: 250px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-primary); padding: 4px;">
+            <div class="sheet-preview-container" id="sheetPreviewWrap">
+              <canvas id="sheetPreviewCanvas"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FRAMES TAB -->
+    <div id="tabFrames" style="display:none;">
+      <div class="panel-section">
+        <div class="drop-zone" id="framesDropZone">
+          <input type="file" accept="image/*" multiple id="framesFileInput" onchange="handleFramesUpload(event)">
+          <div class="icon">🖼️</div>
+          <p>Drop Frame Images Here</p>
+          <small>Multiple images supported</small>
+        </div>
+      </div>
+      <div class="panel-section">
+        <div style="display: flex; gap: 6px; margin-bottom: 10px;">
+          <button class="btn btn-danger btn-sm" onclick="clearAllFrames()">🗑️ Clear All</button>
+        </div>
+        <div class="frames-list" id="framesList">
+          <div class="empty-state">
+            <div class="icon">📁</div>
+            <div>No frames loaded</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CENTER: Preview -->
+  <div class="preview-area">
+    <div class="preview-canvas-wrap checkerboard" id="previewWrap">
+      <canvas id="previewCanvas" width="256" height="256"></canvas>
+    </div>
+    <div class="zoom-controls">
+      <button onclick="zoom(-1)">−</button>
+      <span id="zoomLevel">100%</span>
+      <button onclick="zoom(1)">+</button>
+      <button onclick="zoomFit()" style="font-size:12px; width:auto; padding: 0 8px;">⊡</button>
+    </div>
+    <div class="timeline">
+      <div class="timeline-controls">
+        <button onclick="goToFrame(0)" title="First Frame">⏮</button>
+        <button onclick="prevFrame()" title="Previous Frame">◀</button>
+        <button id="playBtn" onclick="togglePlay()" title="Play/Pause">▶</button>
+        <button onclick="nextFrame()" title="Next Frame">▶</button>
+        <button onclick="goToFrame(frames.length-1)" title="Last Frame">⏭</button>
+        <div class="spacer"></div>
+        <div class="fps-control">
+          <span>FPS</span>
+          <input type="number" id="fpsInput" value="12" min="1" max="60" onchange="updateFPS()">
+        </div>
+      </div>
+      <div class="frame-strip" id="frameStrip"></div>
+      <div class="frame-info" id="frameInfo">Frame 0 / 0</div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="panel" id="rightPanel">
+    <!-- Animation Settings -->
+    <div class="panel-section">
+      <div class="panel-title">Animation Settings</div>
+      <div class="toggle-row">
+        <span>Loop Animation</span>
+        <label class="toggle"><input type="checkbox" id="loopToggle" checked><span class="toggle-slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <span>Ping-Pong</span>
+        <label class="toggle"><input type="checkbox" id="pingPongToggle"><span class="toggle-slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <span>Reverse</span>
+        <label class="toggle"><input type="checkbox" id="reverseToggle"><span class="toggle-slider"></span></label>
+      </div>
+      <div class="form-group" style="margin-top: 8px;">
+        <label>Frame Range (Start - End)</label>
+        <div class="form-row">
+          <input type="number" id="rangeStart" value="1" min="1" onchange="updateRange()">
+          <input type="number" id="rangeEnd" value="1" min="1" onchange="updateRange()">
+        </div>
+      </div>
+    </div>
+
+    <!-- Sequences -->
+    <div class="panel-section">
+      <div class="panel-title">Sequences</div>
+      <button class="btn btn-sm" onclick="showSequenceModal()" style="margin-bottom: 10px;">+ New Sequence</button>
+      <div id="sequencesList">
+        <div class="sequence-item active" onclick="selectSequence('all')">
+          <div class="seq-name">All Frames</div>
+          <div class="seq-info" id="allSeqInfo">No frames</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Export -->
+    <div class="panel-section">
+      <div class="panel-title">Export</div>
+      <div class="form-group">
+        <label>Export Format</label>
+        <select id="exportFormat">
+          <option value="spritesheet">PNG Sprite Sheet</option>
+          <option value="zip">ZIP (Individual Frames)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Sheet Columns</label>
+        <input type="number" id="exportCols" value="4" min="1">
+      </div>
+      <div class="form-group">
+        <label>Scale</label>
+        <select id="exportScale">
+          <option value="1">1x</option>
+          <option value="2">2x</option>
+          <option value="4">4x</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" onclick="exportAnimation()">📥 Export</button>
+    </div>
+
+    <!-- Background -->
+    <div class="panel-section">
+      <div class="panel-title">Background</div>
+      <div class="form-group">
+        <label>Preview Background</label>
+        <select id="bgSelect" onchange="changeBG()">
+          <option value="checkerboard">Checkerboard</option>
+          <option value="black">Black</option>
+          <option value="white">White</option>
+          <option value="magenta">Magenta</option>
+          <option value="custom">Custom Color</option>
+        </select>
+      </div>
+      <div class="form-group" id="customColorGroup" style="display:none;">
+        <label>Custom Color</label>
+        <input type="color" id="customBgColor" value="#333333" onchange="changeBG()">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Sequence Modal -->
+<div class="modal-backdrop" id="seqModal">
+  <div class="modal">
+    <h3>Create Animation Sequence</h3>
+    <div class="form-group">
+      <label>Sequence Name</label>
+      <input type="text" id="seqName" placeholder="e.g. Walk, Run, Attack">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Start Frame</label>
+        <input type="number" id="seqStart" value="1" min="1">
+      </div>
+      <div class="form-group">
+        <label>End Frame</label>
+        <input type="number" id="seqEnd" value="1" min="1">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>FPS</label>
+        <input type="number" id="seqFPS" value="12" min="1" max="60">
+      </div>
+      <div class="form-group">
+        <div class="toggle-row" style="margin-top:18px;">
+          <span>Loop</span>
+          <label class="toggle"><input type="checkbox" id="seqLoop" checked><span class="toggle-slider"></span></label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-sm" onclick="hideSequenceModal()">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="createSequence()">Create</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── STATE ─────────────────────────────
+let frames = [];
+let currentFrame = 0;
+let isPlaying = false;
+let playInterval = null;
+let fps = 12;
+let zoomScale = 1;
+let sheetImage = null;
+let sequences = [];
+let activeSequence = 'all';
+let pingPongForward = true;
+
+// ─── TAB SWITCHING ─────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+  document.getElementById('tabSheet').style.display = tab === 'sheet' ? 'block' : 'none';
+  document.getElementById('tabFrames').style.display = tab === 'frames' ? 'block' : 'none';
+}
+
+// ─── COLLAPSIBLE SECTION ───────────────
+function toggleSection(header) {
+  header.classList.toggle('collapsed');
+  const content = header.nextElementSibling;
+  if (header.classList.contains('collapsed')) {
+    content.style.maxHeight = '0';
+    content.style.overflow = 'hidden';
+    content.style.padding = '0';
+  } else {
+    content.style.maxHeight = '500px';
+    content.style.overflow = 'visible';
+    content.style.padding = '';
+  }
+}
+
+// ─── SPRITE SHEET UPLOAD ───────────────
+function handleSheetUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const img = new Image();
+  img.onload = function() {
+    sheetImage = img;
+    autoDetectGrid();
+    updateSheetPreview();
+    document.getElementById('sheetPreviewContainer').style.display = 'block';
+  };
+  img.src = URL.createObjectURL(file);
+}
+
+function autoDetectGrid() {
+  if (!sheetImage) return;
+  const cols = parseInt(document.getElementById('sheetCols').value) || 4;
+  const rows = parseInt(document.getElementById('sheetRows').value) || 4;
+  const spacingXVal = parseInt(document.getElementById('spacingX').value) || 0;
+  const spacingYVal = parseInt(document.getElementById('spacingY').value) || 0;
+  const offX = parseInt(document.getElementById('offsetX').value) || 0;
+  const offY = parseInt(document.getElementById('offsetY').value) || 0;
+
+  // Auto-calculate frame size from sheet dimensions, accounting for spacing and offset
+  const availableW = sheetImage.width - offX;
+  const availableH = sheetImage.height - offY;
+  const fw = Math.floor((availableW - spacingXVal * (cols - 1)) / cols);
+  const fh = Math.floor((availableH - spacingYVal * (rows - 1)) / rows);
+
+  document.getElementById('frameWidth').value = Math.max(1, fw);
+  document.getElementById('frameHeight').value = Math.max(1, fh);
+}
+
+// ─── SHEET PREVIEW WITH GRID OVERLAY ───
+function updateSheetPreview() {
+  if (!sheetImage) return;
+
+  const canvas = document.getElementById('sheetPreviewCanvas');
+  const ctx = canvas.getContext('2d');
+  const cols = parseInt(document.getElementById('sheetCols').value) || 4;
+  const rows = parseInt(document.getElementById('sheetRows').value) || 4;
+  const fw = parseInt(document.getElementById('frameWidth').value) || 64;
+  const fh = parseInt(document.getElementById('frameHeight').value) || 64;
+  const sx = parseInt(document.getElementById('spacingX').value) || 0;
+  const sy = parseInt(document.getElementById('spacingY').value) || 0;
+  const ox = parseInt(document.getElementById('offsetX').value) || 0;
+  const oy = parseInt(document.getElementById('offsetY').value) || 0;
+
+  // Scale to fit preview
+  const maxW = 280;
+  const scale = Math.min(1, maxW / sheetImage.width);
+  canvas.width = sheetImage.width * scale;
+  canvas.height = sheetImage.height * scale;
+
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(sheetImage, 0, 0, canvas.width, canvas.height);
+
+  // Draw grid overlay — RED frame borders
+  ctx.strokeStyle = 'rgba(255, 0, 0, 0.8)';
+  ctx.lineWidth = 1;
+
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const x = (ox + c * (fw + sx)) * scale;
+      const y = (oy + r * (fh + sy)) * scale;
+      const w = fw * scale;
+      const h = fh * scale;
+      ctx.strokeRect(x + 0.5, y + 0.5, w, h);
+    }
+  }
+
+  // Draw spacing regions in red tint if spacing > 0
+  if (sx > 0 || sy > 0) {
+    ctx.fillStyle = 'rgba(255, 0, 0, 0.12)';
+    // Vertical spacing columns
+    if (sx > 0) {
+      for (let c = 0; c < cols - 1; c++) {
+        const x = (ox + (c + 1) * fw + c * sx) * scale;
+        ctx.fillRect(x, 0, sx * scale, canvas.height);
+      }
+    }
+    // Horizontal spacing rows
+    if (sy > 0) {
+      for (let r = 0; r < rows - 1; r++) {
+        const y = (oy + (r + 1) * fh + r * sy) * scale;
+        ctx.fillRect(0, y, canvas.width, sy * scale);
+      }
+    }
+  }
+
+  // Draw offset region — YELLOW
+  if (ox > 0 || oy > 0) {
+    ctx.fillStyle = 'rgba(255, 220, 0, 0.18)';
+    if (ox > 0) ctx.fillRect(0, 0, ox * scale, canvas.height);
+    if (oy > 0) ctx.fillRect(0, 0, canvas.width, oy * scale);
+  }
+}
+
+// ─── EXTRACT FRAMES (with spacing & offset) ───
+function extractFrames() {
+  if (!sheetImage) {
+    alert('Please upload a sprite sheet first.');
+    return;
+  }
+
+  const cols = parseInt(document.getElementById('sheetCols').value) || 4;
+  const rows = parseInt(document.getElementById('sheetRows').value) || 4;
+  const fw = parseInt(document.getElementById('frameWidth').value) || 64;
+  const fh = parseInt(document.getElementById('frameHeight').value) || 64;
+  const sx = parseInt(document.getElementById('spacingX').value) || 0;
+  const sy = parseInt(document.getElementById('spacingY').value) || 0;
+  const ox = parseInt(document.getElementById('offsetX').value) || 0;
+  const oy = parseInt(document.getElementById('offsetY').value) || 0;
+
+  frames = [];
+
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      // KEY FIX: account for spacing and offset
+      const srcX = ox + c * (fw + sx);
+      const srcY = oy + r * (fh + sy);
+
+      // Skip if this frame would go outside the image
+      if (srcX + fw > sheetImage.width || srcY + fh > sheetImage.height) continue;
+
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = fw;
+      tempCanvas.height = fh;
+      const tempCtx = tempCanvas.getContext('2d');
+      tempCtx.imageSmoothingEnabled = false;
+      tempCtx.drawImage(sheetImage, srcX, srcY, fw, fh, 0, 0, fw, fh);
+
+      // Check if frame is completely empty (transparent)
+      const imgData = tempCtx.getImageData(0, 0, fw, fh).data;
+      let hasContent = false;
+      for (let i = 3; i < imgData.length; i += 4) {
+        if (imgData[i] > 0) { hasContent = true; break; }
+      }
+
+      frames.push({
+        canvas: tempCanvas,
+        dataURL: tempCanvas.toDataURL(),
+        width: fw,
+        height: fh,
+        empty: !hasContent
+      });
+    }
+  }
+
+  currentFrame = 0;
+  updateUI();
+}
+
+// ─── INDIVIDUAL FRAMES UPLOAD ──────────
+function handleFramesUpload(e) {
+  const files = Array.from(e.target.files);
+  files.forEach(file => {
+    const img = new Image();
+    img.onload = function() {
+      const c = document.createElement('canvas');
+      c.width = img.width;
+      c.height = img.height;
+      const ctx = c.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      frames.push({
+        canvas: c,
+        dataURL: c.toDataURL(),
+        width: img.width,
+        height: img.height,
+        empty: false
+      });
+      updateUI();
+    };
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+// ─── UI UPDATE ─────────────────────────
+function updateUI() {
+  updateFrameStrip();
+  updateFramesList();
+  updatePreview();
+  updateFrameInfo();
+  document.getElementById('rangeEnd').value = frames.length;
+  document.getElementById('allSeqInfo').textContent = frames.length > 0
+    ? `Frames 1-${frames.length} • ${frames.length} total`
+    : 'No frames';
+}
+
+function updateFrameStrip() {
+  const strip = document.getElementById('frameStrip');
+  strip.innerHTML = '';
+  frames.forEach((frame, i) => {
+    const thumb = document.createElement('div');
+    thumb.className = 'frame-thumb' + (i === currentFrame ? ' active' : '');
+    thumb.onclick = () => { currentFrame = i; updatePreview(); updateFrameStrip(); updateFrameInfo(); };
+    const img = document.createElement('img');
+    img.src = frame.dataURL;
+    thumb.appendChild(img);
+    const num = document.createElement('span');
+    num.className = 'frame-num';
+    num.textContent = i + 1;
+    thumb.appendChild(num);
+    const del = document.createElement('button');
+    del.className = 'delete-frame';
+    del.textContent = '×';
+    del.onclick = (e) => { e.stopPropagation(); deleteFrame(i); };
+    thumb.appendChild(del);
+    strip.appendChild(thumb);
+  });
+}
+
+function updateFramesList() {
+  const list = document.getElementById('framesList');
+  if (frames.length === 0) {
+    list.innerHTML = '<div class="empty-state"><div class="icon">📁</div><div>No frames loaded</div></div>';
+    return;
+  }
+  list.innerHTML = '';
+  frames.forEach((frame, i) => {
+    const item = document.createElement('div');
+    item.className = 'frame-item';
+    item.innerHTML = `
+      <img src="${frame.dataURL}">
+      <span>Frame ${i + 1} (${frame.width}×${frame.height})</span>
+      <div class="frame-actions">
+        <button onclick="deleteFrame(${i})" title="Delete">🗑</button>
+      </div>
+    `;
+    list.appendChild(item);
+  });
+}
+
+function updatePreview() {
+  const canvas = document.getElementById('previewCanvas');
+  const ctx = canvas.getContext('2d');
+
+  if (frames.length === 0) {
+    canvas.width = 256;
+    canvas.height = 256;
+    ctx.clearRect(0, 0, 256, 256);
+    return;
+  }
+
+  const frame = frames[currentFrame];
+  if (!frame) return;
+
+  canvas.width = frame.width * zoomScale;
+  canvas.height = frame.height * zoomScale;
+  ctx.imageSmoothingEnabled = false;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(frame.canvas, 0, 0, canvas.width, canvas.height);
+}
+
+function updateFrameInfo() {
+  document.getElementById('frameInfo').textContent =
+    frames.length > 0
+      ? `Frame ${currentFrame + 1} / ${frames.length}`
+      : 'Frame 0 / 0';
+}
+
+// ─── PLAYBACK ──────────────────────────
+function togglePlay() {
+  if (frames.length === 0) return;
+  isPlaying = !isPlaying;
+  document.getElementById('playBtn').textContent = isPlaying ? '⏸' : '▶';
+  document.getElementById('playBtn').classList.toggle('active', isPlaying);
+
+  if (isPlaying) {
+    pingPongForward = true;
+    playInterval = setInterval(() => {
+      const start = parseInt(document.getElementById('rangeStart').value) - 1 || 0;
+      const end = parseInt(document.getElementById('rangeEnd').value) - 1 || frames.length - 1;
+      const reverse = document.getElementById('reverseToggle').checked;
+      const pingPong = document.getElementById('pingPongToggle').checked;
+      const loop = document.getElementById('loopToggle').checked;
+
+      if (pingPong) {
+        if (pingPongForward) {
+          currentFrame++;
+          if (currentFrame > end) { currentFrame = end - 1; pingPongForward = false; }
+        } else {
+          currentFrame--;
+          if (currentFrame < start) { currentFrame = start + 1; pingPongForward = true; }
+        }
+      } else if (reverse) {
+        currentFrame--;
+        if (currentFrame < start) {
+          currentFrame = loop ? end : start;
+          if (!loop) { togglePlay(); return; }
+        }
+      } else {
+        currentFrame++;
+        if (currentFrame > end) {
+          currentFrame = loop ? start : end;
+          if (!loop) { togglePlay(); return; }
+        }
+      }
+
+      currentFrame = Math.max(start, Math.min(end, currentFrame));
+      updatePreview();
+      updateFrameStrip();
+      updateFrameInfo();
+    }, 1000 / fps);
+  } else {
+    clearInterval(playInterval);
+  }
+}
+
+function prevFrame() {
+  if (frames.length === 0) return;
+  currentFrame = Math.max(0, currentFrame - 1);
+  updatePreview(); updateFrameStrip(); updateFrameInfo();
+}
+
+function nextFrame() {
+  if (frames.length === 0) return;
+  currentFrame = Math.min(frames.length - 1, currentFrame + 1);
+  updatePreview(); updateFrameStrip(); updateFrameInfo();
+}
+
+function goToFrame(n) {
+  if (frames.length === 0) return;
+  currentFrame = Math.max(0, Math.min(frames.length - 1, n));
+  updatePreview(); updateFrameStrip(); updateFrameInfo();
+}
+
+function updateFPS() {
+  fps = parseInt(document.getElementById('fpsInput').value) || 12;
+  if (isPlaying) { togglePlay(); togglePlay(); }
+}
+
+function updateRange() {
+  const start = parseInt(document.getElementById('rangeStart').value) || 1;
+  const end = parseInt(document.getElementById('rangeEnd').value) || frames.length;
+  document.getElementById('rangeStart').value = Math.max(1, Math.min(start, frames.length));
+  document.getElementById('rangeEnd').value = Math.max(1, Math.min(end, frames.length));
+}
+
+// ─── FRAME MANAGEMENT ─────────────────
+function deleteFrame(index) {
+  frames.splice(index, 1);
+  if (currentFrame >= frames.length) currentFrame = Math.max(0, frames.length - 1);
+  updateUI();
+}
+
+function clearAllFrames() {
+  frames = [];
+  currentFrame = 0;
+  if (isPlaying) togglePlay();
+  updateUI();
+}
+
+// ─── ZOOM ──────────────────────────────
+function zoom(dir) {
+  const steps = [0.25, 0.5, 1, 2, 3, 4, 5, 6, 8];
+  const current = steps.indexOf(zoomScale);
+  let next;
+  if (current === -1) {
+    next = dir > 0 ? steps.findIndex(s => s > zoomScale) : steps.length - 1 - [...steps].reverse().findIndex(s => s < zoomScale);
+    if (next === -1 || next >= steps.length) next = dir > 0 ? steps.length - 1 : 0;
+  } else {
+    next = Math.max(0, Math.min(steps.length - 1, current + dir));
+  }
+  zoomScale = steps[next];
+  document.getElementById('zoomLevel').textContent = Math.round(zoomScale * 100) + '%';
+  updatePreview();
+}
+
+function zoomFit() {
+  zoomScale = 1;
+  document.getElementById('zoomLevel').textContent = '100%';
+  updatePreview();
+}
+
+// ─── BACKGROUND ────────────────────────
+function changeBG() {
+  const val = document.getElementById('bgSelect').value;
+  const wrap = document.getElementById('previewWrap');
+  document.getElementById('customColorGroup').style.display = val === 'custom' ? 'block' : 'none';
+
+  wrap.className = 'preview-canvas-wrap';
+  wrap.style.backgroundColor = '';
+
+  if (val === 'checkerboard') {
+    wrap.classList.add('checkerboard');
+  } else if (val === 'custom') {
+    wrap.style.backgroundColor = document.getElementById('customBgColor').value;
+  } else {
+    const colors = { black: '#000', white: '#fff', magenta: '#ff00ff' };
+    wrap.style.backgroundColor = colors[val] || '#000';
+  }
+}
+
+// ─── SEQUENCES ─────────────────────────
+function showSequenceModal() {
+  document.getElementById('seqModal').classList.add('show');
+  document.getElementById('seqEnd').value = frames.length || 1;
+}
+
+function hideSequenceModal() {
+  document.getElementById('seqModal').classList.remove('show');
+}
+
+function createSequence() {
+  const name = document.getElementById('seqName').value.trim() || 'Untitled';
+  const start = parseInt(document.getElementById('seqStart').value) || 1;
+  const end = parseInt(document.getElementById('seqEnd').value) || 1;
+  const seqFps = parseInt(document.getElementById('seqFPS').value) || 12;
+  const loop = document.getElementById('seqLoop').checked;
+
+  sequences.push({ name, start, end, fps: seqFps, loop });
+  renderSequences();
+  hideSequenceModal();
+}
+
+function selectSequence(id) {
+  activeSequence = id;
+  if (id === 'all') {
+    document.getElementById('rangeStart').value = 1;
+    document.getElementById('rangeEnd').value = frames.length;
+    fps = parseInt(document.getElementById('fpsInput').value) || 12;
+  } else {
+    const seq = sequences[id];
+    document.getElementById('rangeStart').value = seq.start;
+    document.getElementById('rangeEnd').value = seq.end;
+    document.getElementById('fpsInput').value = seq.fps;
+    fps = seq.fps;
+    document.getElementById('loopToggle').checked = seq.loop;
+    currentFrame = seq.start - 1;
+    updatePreview(); updateFrameStrip(); updateFrameInfo();
+  }
+  renderSequences();
+}
+
+function renderSequences() {
+  const container = document.getElementById('sequencesList');
+  let html = `
+    <div class="sequence-item ${activeSequence === 'all' ? 'active' : ''}" onclick="selectSequence('all')">
+      <div class="seq-name">All Frames</div>
+      <div class="seq-info" id="allSeqInfo">${frames.length > 0 ? `Frames 1-${frames.length} • ${frames.length} total` : 'No frames'}</div>
+    </div>
+  `;
+  sequences.forEach((seq, i) => {
+    html += `
+      <div class="sequence-item ${activeSequence === i ? 'active' : ''}" onclick="selectSequence(${i})">
+        <div class="seq-name">${seq.name}</div>
+        <div class="seq-info">Frames ${seq.start}-${seq.end} • ${seq.fps} FPS${seq.loop ? ' • Loop' : ''}</div>
+      </div>
+    `;
+  });
+  container.innerHTML = html;
+}
+
+// ─── EXPORT ────────────────────────────
+function exportAnimation() {
+  if (frames.length === 0) { alert('No frames to export.'); return; }
+
+  const format = document.getElementById('exportFormat').value;
+  const scale = parseInt(document.getElementById('exportScale').value) || 1;
+
+  if (format === 'spritesheet') {
+    const cols = parseInt(document.getElementById('exportCols').value) || 4;
+    const rows = Math.ceil(frames.length / cols);
+    const fw = frames[0].width * scale;
+    const fh = frames[0].height * scale;
+    const canvas = document.createElement('canvas');
+    canvas.width = cols * fw;
+    canvas.height = rows * fh;
+    const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+
+    frames.forEach((frame, i) => {
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      ctx.drawImage(frame.canvas, col * fw, row * fh, fw, fh);
+    });
+
+    const link = document.createElement('a');
+    link.download = 'spritesheet.png';
+    link.href = canvas.toDataURL();
+    link.click();
+  } else if (format === 'zip') {
+    // Simple download of individual frames
+    frames.forEach((frame, i) => {
+      const link = document.createElement('a');
+      link.download = `frame_${String(i + 1).padStart(3, '0')}.png`;
+      link.href = frame.dataURL;
+      link.click();
+    });
+  }
+}
+
+// ─── KEYBOARD SHORTCUTS ────────────────
+document.addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+  switch(e.code) {
+    case 'Space': e.preventDefault(); togglePlay(); break;
+    case 'ArrowLeft': prevFrame(); break;
+    case 'ArrowRight': nextFrame(); break;
+    case 'Home': goToFrame(0); break;
+    case 'End': goToFrame(frames.length - 1); break;
+  }
+});
+
+// ─── DRAG & DROP ───────────────────────
+['sheetDropZone', 'framesDropZone'].forEach(id => {
+  const zone = document.getElementById(id);
+  if (!zone) return;
+  zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('dragover'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+  zone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    zone.classList.remove('dragover');
+    const input = zone.querySelector('input[type="file"]');
+    if (input && e.dataTransfer.files.length) {
+      input.files = e.dataTransfer.files;
+      input.dispatchEvent(new Event('change'));
+    }
+  });
+});
+</script>
+</body>
+</html>
