@@ -725,6 +725,10 @@
           <p>Drop Sprite Sheet Here</p>
           <small>or click to browse</small>
         </div>
+        <div id="sheetInfo" style="display:none; margin-top: 10px; padding: 10px; background: var(--lp-input-bg); border: 1px solid var(--lp-border); border-radius: 6px; font-size: 12px; color: var(--lp-text-primary);">
+          <div style="font-weight: 600; margin-bottom: 6px; color: var(--accent);">📐 Sheet Info</div>
+          <div id="sheetInfoContent"></div>
+        </div>
       </div>
 
       <div class="panel-section">
@@ -810,6 +814,29 @@
           <div class="icon">🖼️</div>
           <p>Drop Frame Images Here</p>
           <small>Multiple images supported</small>
+        </div>
+        <div id="framesInfo" style="display:none; margin-top: 10px; padding: 10px; background: var(--lp-input-bg); border: 1px solid var(--lp-border); border-radius: 6px; font-size: 12px; color: var(--lp-text-primary);">
+          <div style="font-weight: 600; margin-bottom: 6px; color: var(--accent);">📐 Frames Info</div>
+          <div id="framesInfoContent"></div>
+        </div>
+        <div id="resizeSection" style="display:none; margin-top: 10px; padding: 10px; background: var(--lp-input-bg); border: 1px solid var(--lp-border); border-radius: 6px; font-size: 12px;">
+          <div style="font-weight: 600; margin-bottom: 8px; color: var(--warning);">⚠ Frames have different sizes</div>
+          <div style="color: var(--lp-text-secondary); margin-bottom: 8px;">Resize all frames to a uniform size:</div>
+          <div class="form-row" style="margin-bottom: 8px;">
+            <div class="form-group">
+              <label>Target Width</label>
+              <input type="number" id="resizeWidth" value="256" min="1">
+            </div>
+            <div class="form-group">
+              <label>Target Height</label>
+              <input type="number" id="resizeHeight" value="256" min="1">
+            </div>
+          </div>
+          <div style="display: flex; gap: 6px; margin-bottom: 6px;">
+            <button class="btn btn-sm" onclick="setResizeToLargest()" title="Use the largest frame dimensions">Use Largest</button>
+            <button class="btn btn-sm" onclick="setResizeToSmallest()" title="Use the smallest frame dimensions">Use Smallest</button>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="resizeAllFrames()">↔ Resize All Frames</button>
         </div>
       </div>
       <div class="panel-section">
@@ -1020,10 +1047,46 @@ function handleSheetUpload(e) {
   img.onload = function() {
     sheetImage = img;
     autoDetectGrid();
+    updateSheetInfo();
     updateSheetPreview();
     document.getElementById('sheetPreviewContainer').style.display = 'block';
   };
   img.src = URL.createObjectURL(file);
+}
+
+function updateSheetInfo() {
+  if (!sheetImage) return;
+  const infoDiv = document.getElementById('sheetInfo');
+  const contentDiv = document.getElementById('sheetInfoContent');
+  infoDiv.style.display = 'block';
+
+  const cols = parseInt(document.getElementById('sheetCols').value) || 4;
+  const rows = parseInt(document.getElementById('sheetRows').value) || 4;
+  const fw = parseInt(document.getElementById('frameWidth').value) || 64;
+  const fh = parseInt(document.getElementById('frameHeight').value) || 64;
+  const sx = parseInt(document.getElementById('spacingX').value) || 0;
+  const sy = parseInt(document.getElementById('spacingY').value) || 0;
+  const ox = parseInt(document.getElementById('offsetX').value) || 0;
+  const oy = parseInt(document.getElementById('offsetY').value) || 0;
+
+  const totalFrames = cols * rows;
+  const usedW = ox + cols * fw + (cols - 1) * sx;
+  const usedH = oy + rows * fh + (rows - 1) * sy;
+  const fitsW = usedW <= sheetImage.width;
+  const fitsH = usedH <= sheetImage.height;
+
+  contentDiv.innerHTML = `
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; line-height: 1.8;">
+      <span style="color:var(--lp-text-secondary);">Sheet Size:</span>
+      <span style="font-weight:600;">${sheetImage.width} × ${sheetImage.height} px</span>
+      <span style="color:var(--lp-text-secondary);">Frame Size:</span>
+      <span style="font-weight:600;">${fw} × ${fh} px</span>
+      <span style="color:var(--lp-text-secondary);">Grid:</span>
+      <span style="font-weight:600;">${cols} × ${rows} (${totalFrames} frames)</span>
+      <span style="color:var(--lp-text-secondary);">Grid Coverage:</span>
+      <span style="font-weight:600; color:${fitsW && fitsH ? 'var(--success)' : 'var(--danger)'};">${usedW} × ${usedH} px ${fitsW && fitsH ? '✓' : '⚠ exceeds sheet'}</span>
+    </div>
+  `;
 }
 
 function autoDetectGrid() {
@@ -1048,6 +1111,7 @@ function autoDetectGrid() {
 // ─── SHEET PREVIEW WITH GRID OVERLAY ───
 function updateSheetPreview() {
   if (!sheetImage) return;
+  updateSheetInfo();
 
   const canvas = document.getElementById('sheetPreviewCanvas');
   const ctx = canvas.getContext('2d');
@@ -1193,6 +1257,7 @@ function handleFramesUpload(e) {
 function updateUI() {
   updateFrameStrip();
   updateFramesList();
+  updateFramesInfo();
   updatePreview();
   updateFrameInfo();
   document.getElementById('rangeEnd').value = frames.length;
@@ -1362,6 +1427,128 @@ function clearAllFrames() {
   frames = [];
   currentFrame = 0;
   if (isPlaying) togglePlay();
+  updateUI();
+}
+
+// ─── FRAMES INFO & RESIZE ──────────────
+function updateFramesInfo() {
+  const infoDiv = document.getElementById('framesInfo');
+  const contentDiv = document.getElementById('framesInfoContent');
+  const resizeDiv = document.getElementById('resizeSection');
+
+  if (frames.length === 0) {
+    infoDiv.style.display = 'none';
+    resizeDiv.style.display = 'none';
+    return;
+  }
+
+  infoDiv.style.display = 'block';
+
+  const widths = frames.map(f => f.width);
+  const heights = frames.map(f => f.height);
+  const minW = Math.min(...widths);
+  const maxW = Math.max(...widths);
+  const minH = Math.min(...heights);
+  const maxH = Math.max(...heights);
+  const allSame = minW === maxW && minH === maxH;
+
+  // Count unique sizes
+  const sizeMap = {};
+  frames.forEach(f => {
+    const key = f.width + 'x' + f.height;
+    sizeMap[key] = (sizeMap[key] || 0) + 1;
+  });
+  const uniqueSizes = Object.keys(sizeMap);
+
+  let html = '<div style="display:grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; line-height: 1.8;">';
+  html += '<span style="color:var(--lp-text-secondary);">Total Frames:</span>';
+  html += '<span style="font-weight:600;">' + frames.length + '</span>';
+
+  if (allSame) {
+    html += '<span style="color:var(--lp-text-secondary);">Frame Size:</span>';
+    html += '<span style="font-weight:600; color:var(--success);">' + minW + ' × ' + minH + ' px ✓</span>';
+  } else {
+    html += '<span style="color:var(--lp-text-secondary);">Sizes:</span>';
+    html += '<span style="font-weight:600; color:var(--warning);">' + uniqueSizes.length + ' different</span>';
+    html += '<span style="color:var(--lp-text-secondary);">Width Range:</span>';
+    html += '<span style="font-weight:600;">' + minW + ' – ' + maxW + ' px</span>';
+    html += '<span style="color:var(--lp-text-secondary);">Height Range:</span>';
+    html += '<span style="font-weight:600;">' + minH + ' – ' + maxH + ' px</span>';
+  }
+
+  html += '</div>';
+
+  // Show size breakdown if multiple sizes
+  if (!allSame) {
+    html += '<div style="margin-top: 8px; padding-top: 6px; border-top: 1px solid var(--lp-border);">';
+    html += '<div style="font-size: 11px; color: var(--lp-text-muted); margin-bottom: 4px;">Size Breakdown:</div>';
+    for (const [size, count] of Object.entries(sizeMap)) {
+      html += '<div style="font-size: 11px; color: var(--lp-text-secondary);">' + size + ' px — ' + count + ' frame' + (count > 1 ? 's' : '') + '</div>';
+    }
+    html += '</div>';
+  }
+
+  contentDiv.innerHTML = html;
+
+  // Show resize section if sizes differ
+  if (!allSame) {
+    resizeDiv.style.display = 'block';
+    document.getElementById('resizeWidth').value = maxW;
+    document.getElementById('resizeHeight').value = maxH;
+  } else {
+    resizeDiv.style.display = 'none';
+  }
+}
+
+function setResizeToLargest() {
+  const maxW = Math.max(...frames.map(f => f.width));
+  const maxH = Math.max(...frames.map(f => f.height));
+  document.getElementById('resizeWidth').value = maxW;
+  document.getElementById('resizeHeight').value = maxH;
+}
+
+function setResizeToSmallest() {
+  const minW = Math.min(...frames.map(f => f.width));
+  const minH = Math.min(...frames.map(f => f.height));
+  document.getElementById('resizeWidth').value = minW;
+  document.getElementById('resizeHeight').value = minH;
+}
+
+function resizeAllFrames() {
+  const targetW = parseInt(document.getElementById('resizeWidth').value) || 256;
+  const targetH = parseInt(document.getElementById('resizeHeight').value) || 256;
+
+  if (frames.length === 0) return;
+
+  frames = frames.map(frame => {
+    if (frame.width === targetW && frame.height === targetH) return frame;
+
+    const newCanvas = document.createElement('canvas');
+    newCanvas.width = targetW;
+    newCanvas.height = targetH;
+    const ctx = newCanvas.getContext('2d');
+
+    // Scale to fit while preserving aspect ratio, centered
+    const scaleX = targetW / frame.width;
+    const scaleY = targetH / frame.height;
+    const scale = Math.min(scaleX, scaleY);
+    const drawW = frame.width * scale;
+    const drawH = frame.height * scale;
+    const drawX = (targetW - drawW) / 2;
+    const drawY = (targetH - drawH) / 2;
+
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(frame.canvas, drawX, drawY, drawW, drawH);
+
+    return {
+      canvas: newCanvas,
+      dataURL: newCanvas.toDataURL(),
+      width: targetW,
+      height: targetH,
+      empty: frame.empty
+    };
+  });
+
   updateUI();
 }
 
