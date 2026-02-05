@@ -67,7 +67,7 @@
   /* Layout */
   .app-layout {
     display: grid;
-    grid-template-columns: 320px 1fr 280px;
+    grid-template-columns: var(--left-panel-width, 320px) 5px 1fr 280px;
     height: calc(100vh - 57px);
   }
 
@@ -77,10 +77,24 @@
     overflow-y: auto;
     background: var(--bg-secondary);
   }
+  #leftPanel {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  #leftPanel #tabSheet,
+  #leftPanel #tabFrames {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow-y: auto;
+  }
   .panel:last-child { border-right: none; }
   .panel-section {
     padding: 16px;
     border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
   }
   .panel-title {
     font-size: 11px;
@@ -97,6 +111,7 @@
     gap: 2px;
     padding: 8px;
     background: var(--bg-primary);
+    flex-shrink: 0;
   }
   .tab {
     flex: 1;
@@ -616,42 +631,102 @@
 
   /* Responsive */
   @media (max-width: 1024px) {
-    .app-layout { grid-template-columns: 280px 1fr; }
+    .app-layout { grid-template-columns: 280px 5px 1fr; }
     .panel:last-child { display: none; }
   }
   @media (max-width: 768px) {
     .app-layout { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+    .resize-handle { display: none; }
   }
 
   /* ── Left Panel Light Theme ── */
 
-  /* Offset controls in preview column */
-  .offset-controls-panel {
+  /* Resize handle between left panel and preview */
+  .resize-handle {
+    width: 5px;
+    cursor: col-resize;
+    background: var(--lp-border);
+    transition: background 0.2s;
+    position: relative;
+    z-index: 10;
+  }
+  .resize-handle:hover,
+  .resize-handle.active {
+    background: var(--accent);
+  }
+  .resize-handle::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 3px;
+    height: 32px;
+    border-radius: 2px;
+    background: rgba(255,255,255,0.15);
+    pointer-events: none;
+  }
+  .resize-handle:hover::before,
+  .resize-handle.active::before {
+    background: rgba(255,255,255,0.4);
+  }
+
+  /* Config row — side by side Sheet Config + Spacing & Offset */
+  .config-row-panel {
+    display: flex;
     background: var(--lp-bg);
     border-top: 1px solid var(--lp-border);
     flex-shrink: 0;
   }
-  .offset-controls-panel .panel-section {
-    padding: 16px;
-    border-bottom: 1px solid var(--lp-border);
+  .config-row-panel .config-col {
+    flex: 1;
+    padding: 12px 14px;
+    min-width: 0;
   }
-  .offset-controls-panel .panel-section:last-child {
-    border-bottom: none;
+  .config-col-divider {
+    width: 1px;
+    background: var(--lp-border);
+    flex-shrink: 0;
   }
-  .offset-controls-panel .panel-title { color: var(--lp-text-muted); }
-  .offset-controls-panel .info-banner {
-    background: rgba(108, 92, 231, 0.06);
-    border-color: rgba(108, 92, 231, 0.2);
-    color: var(--lp-text-secondary);
+  .config-row-panel .panel-title {
+    color: var(--lp-text-muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 10px;
+    font-weight: 600;
   }
-  .offset-controls-panel .form-group label { color: var(--lp-text-secondary); }
-  .offset-controls-panel input[type="number"] {
+  .config-row-panel .form-group label { color: var(--lp-text-secondary); }
+  .config-row-panel input[type="number"] {
     background: var(--lp-input-bg);
     border-color: var(--lp-border);
     color: var(--lp-text-primary);
   }
-  .offset-controls-panel input[type="number"]:focus { border-color: var(--accent); }
-  .offset-controls-panel .section-header .collapse-icon { color: var(--lp-text-muted); }
+  .config-row-panel input[type="number"]:focus { border-color: var(--accent); }
+
+  /* Expanded sheet preview in left panel */
+  .sheet-preview-section {
+    flex: 1 1 0 !important;
+    display: flex;
+    flex-direction: column;
+    min-height: 120px;
+    overflow: hidden;
+  }
+  .sheet-preview-scroll {
+    flex: 1;
+    overflow: auto;
+    border: 1px solid var(--lp-border);
+    border-radius: 6px;
+    background: var(--bg-primary);
+    padding: 4px;
+    min-height: 0;
+  }
+  .sheet-preview-scroll .sheet-preview-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100%;
+  }
 
   #leftPanel {
     background: var(--lp-bg);
@@ -784,42 +859,18 @@
         </div>
       </div>
 
-      <div class="panel-section">
-        <div class="panel-title">Sheet Configuration</div>
-
-        <div class="form-row" style="margin-bottom: 8px;">
-          <div class="form-group">
-            <label>Columns</label>
-            <input type="number" id="sheetCols" value="4" min="1" oninput="onGridSettingChange()">
-          </div>
-          <div class="form-group">
-            <label>Rows</label>
-            <input type="number" id="sheetRows" value="4" min="1" oninput="onGridSettingChange()">
-          </div>
-        </div>
-
-        <div class="form-row" style="margin-bottom: 8px;">
-          <div class="form-group">
-            <label>Frame Width</label>
-            <input type="number" id="frameWidth" value="64" min="1" oninput="updateSheetPreview()">
-          </div>
-          <div class="form-group">
-            <label>Frame Height</label>
-            <input type="number" id="frameHeight" value="64" min="1" oninput="updateSheetPreview()">
+      <!-- Sheet Preview — expanded to fill left panel -->
+      <div class="panel-section sheet-preview-section" id="sheetPreviewContainer" style="display: none;">
+        <div class="panel-title">Sheet Preview</div>
+        <div class="sheet-preview-scroll" id="sheetPreviewScroll">
+          <div class="sheet-preview-container" id="sheetPreviewWrap">
+            <canvas id="sheetPreviewCanvas"></canvas>
           </div>
         </div>
       </div>
 
-      <div class="panel-section">
+      <div class="panel-section" style="flex-shrink: 0;">
         <button class="btn btn-primary" onclick="extractFrames()">⚡ Extract Frames</button>
-        <div id="sheetPreviewContainer" style="margin-top: 12px; display: none;">
-          <div class="panel-title">Sheet Preview</div>
-          <div style="overflow: auto; max-height: 250px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-primary); padding: 4px;">
-            <div class="sheet-preview-container" id="sheetPreviewWrap">
-              <canvas id="sheetPreviewCanvas"></canvas>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
 
@@ -870,6 +921,9 @@
     </div>
   </div>
 
+  <!-- Resize handle for left panel -->
+  <div class="resize-handle" id="resizeHandle"></div>
+
   <!-- PREVIEW COLUMN: Preview + Offset Controls -->
   <div class="preview-column">
     <!-- CENTER: Preview -->
@@ -901,39 +955,52 @@
       </div>
     </div>
 
-    <!-- Spacing & Offset Controls (below preview) -->
-    <div class="offset-controls-panel">
-      <div class="panel-section">
-        <div class="section-header" onclick="toggleSection(this)" id="spacingHeader">
-          <div class="panel-title" style="margin-bottom:0;">Spacing &amp; Offset</div>
-          <span class="collapse-icon">▼</span>
+    <!-- Config Row: Sheet Configuration + Spacing & Offset side by side -->
+    <div class="config-row-panel">
+      <div class="config-col">
+        <div class="panel-title">Sheet Configuration</div>
+        <div class="form-row" style="margin-bottom: 8px;">
+          <div class="form-group">
+            <label>Columns</label>
+            <input type="number" id="sheetCols" value="4" min="1" oninput="onGridSettingChange()">
+          </div>
+          <div class="form-group">
+            <label>Rows</label>
+            <input type="number" id="sheetRows" value="4" min="1" oninput="onGridSettingChange()">
+          </div>
         </div>
-        <div class="section-content" id="spacingSection">
-          <div class="info-banner" style="margin-top: 10px;">
-            <span class="info-icon">💡</span>
-            <span>Use these if your sprite sheet has gaps between frames or a border around the edges.</span>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Frame Width</label>
+            <input type="number" id="frameWidth" value="64" min="1" oninput="updateSheetPreview()">
           </div>
-
-          <div class="form-row" style="margin-bottom: 8px;">
-            <div class="form-group">
-              <label>Spacing X</label>
-              <input type="number" id="spacingX" value="0" min="0" oninput="onGridSettingChange()" title="Horizontal gap between frames (px)">
-            </div>
-            <div class="form-group">
-              <label>Spacing Y</label>
-              <input type="number" id="spacingY" value="0" min="0" oninput="onGridSettingChange()" title="Vertical gap between frames (px)">
-            </div>
+          <div class="form-group">
+            <label>Frame Height</label>
+            <input type="number" id="frameHeight" value="64" min="1" oninput="updateSheetPreview()">
           </div>
-
-          <div class="form-row" style="margin-bottom: 8px;">
-            <div class="form-group">
-              <label>Offset X</label>
-              <input type="number" id="offsetX" value="0" min="0" oninput="onGridSettingChange()" title="Left margin before first frame (px)">
-            </div>
-            <div class="form-group">
-              <label>Offset Y</label>
-              <input type="number" id="offsetY" value="0" min="0" oninput="onGridSettingChange()" title="Top margin before first frame (px)">
-            </div>
+        </div>
+      </div>
+      <div class="config-col-divider"></div>
+      <div class="config-col">
+        <div class="panel-title">Spacing &amp; Offset</div>
+        <div class="form-row" style="margin-bottom: 8px;">
+          <div class="form-group">
+            <label>Spacing X</label>
+            <input type="number" id="spacingX" value="0" min="0" oninput="onGridSettingChange()" title="Horizontal gap between frames (px)">
+          </div>
+          <div class="form-group">
+            <label>Spacing Y</label>
+            <input type="number" id="spacingY" value="0" min="0" oninput="onGridSettingChange()" title="Vertical gap between frames (px)">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Offset X</label>
+            <input type="number" id="offsetX" value="0" min="0" oninput="onGridSettingChange()" title="Left margin before first frame (px)">
+          </div>
+          <div class="form-group">
+            <label>Offset Y</label>
+            <input type="number" id="offsetY" value="0" min="0" oninput="onGridSettingChange()" title="Top margin before first frame (px)">
           </div>
         </div>
       </div>
@@ -1079,8 +1146,8 @@ let pingPongForward = true;
 function switchTab(tab) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
-  document.getElementById('tabSheet').style.display = tab === 'sheet' ? 'block' : 'none';
-  document.getElementById('tabFrames').style.display = tab === 'frames' ? 'block' : 'none';
+  document.getElementById('tabSheet').style.display = tab === 'sheet' ? 'flex' : 'none';
+  document.getElementById('tabFrames').style.display = tab === 'frames' ? 'flex' : 'none';
 }
 
 // ─── COLLAPSIBLE SECTION ───────────────
@@ -1108,7 +1175,7 @@ function handleSheetUpload(e) {
     autoDetectGrid();
     updateSheetInfo();
     updateSheetPreview();
-    document.getElementById('sheetPreviewContainer').style.display = 'block';
+    document.getElementById('sheetPreviewContainer').style.display = 'flex';
   };
   img.src = URL.createObjectURL(file);
 }
@@ -1188,8 +1255,9 @@ function updateSheetPreview() {
   const ox = parseInt(document.getElementById('offsetX').value) || 0;
   const oy = parseInt(document.getElementById('offsetY').value) || 0;
 
-  // Scale to fit preview
-  const maxW = 280;
+  // Dynamically fit to container width
+  const container = document.getElementById('sheetPreviewScroll');
+  const maxW = container ? container.clientWidth - 12 : 280;
   const scale = Math.min(1, maxW / sheetImage.width);
   canvas.width = sheetImage.width * scale;
   canvas.height = sheetImage.height * scale;
@@ -1784,6 +1852,48 @@ document.addEventListener('keydown', (e) => {
     }
   });
 });
+
+// ─── LEFT PANEL RESIZE HANDLE ─────────
+(function() {
+  const handle = document.getElementById('resizeHandle');
+  const layout = document.querySelector('.app-layout');
+  let isDragging = false;
+  let startX, startWidth;
+
+  handle.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    startX = e.clientX;
+    startWidth = document.getElementById('leftPanel').offsetWidth;
+    handle.classList.add('active');
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    const delta = e.clientX - startX;
+    const newWidth = Math.max(220, Math.min(600, startWidth + delta));
+    layout.style.setProperty('--left-panel-width', newWidth + 'px');
+    // Refresh sheet preview to fit new width
+    if (sheetImage) updateSheetPreview();
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (!isDragging) return;
+    isDragging = false;
+    handle.classList.remove('active');
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  });
+})();
+
+// ─── RESIZE OBSERVER FOR SHEET PREVIEW ─
+const sheetPreviewObserver = new ResizeObserver(() => {
+  if (sheetImage) updateSheetPreview();
+});
+const sheetScrollEl = document.getElementById('sheetPreviewScroll');
+if (sheetScrollEl) sheetPreviewObserver.observe(sheetScrollEl);
 </script>
 </body>
 </html>
