@@ -1,0 +1,1913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sprite Forge | Animation Studio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-tertiary: #1a1a25;
+            --bg-panel: #15151f;
+            --accent-primary: #00f0ff;
+            --accent-secondary: #ff00aa;
+            --accent-tertiary: #7b2dff;
+            --text-primary: #e8e8f0;
+            --text-secondary: #8888a0;
+            --text-muted: #555566;
+            --border-color: #2a2a3a;
+            --success: #00ff88;
+            --warning: #ffaa00;
+            --danger: #ff4466;
+            --glow-cyan: 0 0 20px rgba(0, 240, 255, 0.3);
+            --glow-pink: 0 0 20px rgba(255, 0, 170, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animated background grid */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(180deg, var(--bg-secondary) 0%, transparent 100%);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent-primary), var(--accent-secondary), transparent);
+        }
+
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* Main Layout */
+        .app-container {
+            display: grid;
+            grid-template-columns: 320px 1fr 300px;
+            gap: 1px;
+            background: var(--border-color);
+            min-height: calc(100vh - 70px);
+        }
+
+        /* Panels */
+        .panel {
+            background: var(--bg-panel);
+            padding: 1.25rem;
+            overflow-y: auto;
+        }
+
+        .panel-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--accent-primary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .panel-title::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: var(--accent-primary);
+            clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 2px;
+            margin-bottom: 1.25rem;
+            background: var(--bg-primary);
+            padding: 3px;
+            border-radius: 6px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 0.6rem 0.5rem;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .tab:hover {
+            color: var(--text-primary);
+            background: var(--bg-tertiary);
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-tertiary));
+            color: var(--bg-primary);
+        }
+
+        /* Upload Zone */
+        .upload-zone {
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 2rem 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--bg-primary);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-zone::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.05), rgba(255, 0, 170, 0.05));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--accent-primary);
+            box-shadow: var(--glow-cyan);
+        }
+
+        .upload-zone:hover::before {
+            opacity: 1;
+        }
+
+        .upload-zone.dragover {
+            border-color: var(--accent-secondary);
+            box-shadow: var(--glow-pink);
+        }
+
+        .upload-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .upload-text {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        .upload-hint {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* Sprite Sheet Settings */
+        .settings-group {
+            background: var(--bg-primary);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .settings-group-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.75rem;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .input-group {
+            flex: 1;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 0.25rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            color: var(--text-primary);
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.95rem;
+            transition: border-color 0.2s ease;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.6rem 1.25rem;
+            border: none;
+            border-radius: 4px;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-tertiary));
+            color: var(--bg-primary);
+        }
+
+        .btn-primary:hover {
+            box-shadow: var(--glow-cyan);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent-primary);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: var(--bg-primary);
+        }
+
+        .btn-block {
+            width: 100%;
+            justify-content: center;
+        }
+
+        /* Frames List */
+        .frames-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 0.5rem;
+            margin-top: 1rem;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 0.5rem;
+            background: var(--bg-primary);
+            border-radius: 8px;
+        }
+
+        .frame-item {
+            aspect-ratio: 1;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .frame-item:hover {
+            border-color: var(--accent-primary);
+        }
+
+        .frame-item.selected {
+            border-color: var(--accent-secondary);
+            box-shadow: var(--glow-pink);
+        }
+
+        .frame-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            image-rendering: pixelated;
+        }
+
+        .frame-number {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            background: rgba(0, 0, 0, 0.8);
+            color: var(--accent-primary);
+            font-size: 0.65rem;
+            padding: 1px 4px;
+            border-radius: 2px;
+            font-weight: 600;
+        }
+
+        .frame-item .delete-frame {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 16px;
+            height: 16px;
+            background: var(--danger);
+            border: none;
+            border-radius: 2px;
+            color: white;
+            font-size: 10px;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .frame-item:hover .delete-frame {
+            opacity: 1;
+        }
+
+        /* Main Preview Area */
+        .preview-area {
+            background: var(--bg-secondary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .preview-canvas-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            width: 100%;
+        }
+
+        .preview-canvas {
+            background-image: 
+                linear-gradient(45deg, #1a1a25 25%, transparent 25%),
+                linear-gradient(-45deg, #1a1a25 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #1a1a25 75%),
+                linear-gradient(-45deg, transparent 75%, #1a1a25 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+            background-color: #12121a;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            image-rendering: pixelated;
+        }
+
+        .preview-info {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: var(--accent-primary);
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        /* Playback Controls */
+        .playback-controls {
+            background: var(--bg-panel);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            border-top: 1px solid var(--border-color);
+            width: 100%;
+        }
+
+        .playback-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid var(--border-color);
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .playback-btn:hover {
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+        }
+
+        .playback-btn.play-pause {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-tertiary));
+            border: none;
+            color: var(--bg-primary);
+        }
+
+        .playback-btn.play-pause:hover {
+            box-shadow: var(--glow-cyan);
+            transform: scale(1.05);
+        }
+
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-left: 1rem;
+            padding-left: 1rem;
+            border-left: 1px solid var(--border-color);
+        }
+
+        .speed-control label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .speed-slider {
+            width: 120px;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 6px;
+            background: var(--bg-primary);
+            border-radius: 3px;
+            outline: none;
+        }
+
+        .speed-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: var(--accent-primary);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .speed-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.85rem;
+            color: var(--accent-primary);
+            min-width: 50px;
+        }
+
+        .frame-counter {
+            margin-left: 1rem;
+            padding-left: 1rem;
+            border-left: 1px solid var(--border-color);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .frame-counter span {
+            color: var(--accent-primary);
+        }
+
+        /* Timeline */
+        .timeline {
+            background: var(--bg-panel);
+            padding: 1rem;
+            border-top: 1px solid var(--border-color);
+            width: 100%;
+        }
+
+        .timeline-title {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.75rem;
+        }
+
+        .timeline-track {
+            display: flex;
+            gap: 4px;
+            overflow-x: auto;
+            padding: 0.5rem;
+            background: var(--bg-primary);
+            border-radius: 6px;
+        }
+
+        .timeline-frame {
+            width: 50px;
+            height: 50px;
+            min-width: 50px;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .timeline-frame:hover {
+            border-color: var(--accent-primary);
+        }
+
+        .timeline-frame.active {
+            border-color: var(--accent-secondary);
+            box-shadow: var(--glow-pink);
+        }
+
+        .timeline-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            image-rendering: pixelated;
+        }
+
+        /* Right Panel - Animation Sequences */
+        .sequence-item {
+            background: var(--bg-primary);
+            border-radius: 6px;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .sequence-item:hover {
+            border-color: var(--accent-primary);
+        }
+
+        .sequence-item.active {
+            border-color: var(--accent-secondary);
+            background: rgba(255, 0, 170, 0.1);
+        }
+
+        .sequence-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sequence-info {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .sequence-actions {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .sequence-actions button {
+            width: 24px;
+            height: 24px;
+            border: none;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.7rem;
+        }
+
+        .sequence-actions button:hover {
+            color: var(--accent-primary);
+        }
+
+        /* Checkbox & Toggle */
+        .toggle-group {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .toggle {
+            position: relative;
+            width: 44px;
+            height: 24px;
+        }
+
+        .toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            transition: 0.3s;
+        }
+
+        .toggle-slider::before {
+            position: absolute;
+            content: '';
+            height: 18px;
+            width: 18px;
+            left: 2px;
+            bottom: 2px;
+            background: var(--text-secondary);
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        .toggle input:checked + .toggle-slider {
+            background: var(--accent-primary);
+            border-color: var(--accent-primary);
+        }
+
+        .toggle input:checked + .toggle-slider::before {
+            transform: translateX(20px);
+            background: var(--bg-primary);
+        }
+
+        .toggle-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* Export Panel */
+        .export-options {
+            background: var(--bg-primary);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        /* Hidden file input */
+        .hidden-input {
+            display: none;
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-muted);
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        /* Zoom controls */
+        .zoom-controls {
+            position: absolute;
+            bottom: 1rem;
+            right: 1rem;
+            display: flex;
+            gap: 0.5rem;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 0.5rem;
+            border-radius: 6px;
+        }
+
+        .zoom-btn {
+            width: 32px;
+            height: 32px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .zoom-btn:hover {
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+        }
+
+        .zoom-value {
+            display: flex;
+            align-items: center;
+            padding: 0 0.5rem;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.75rem;
+            color: var(--accent-primary);
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .app-container {
+                grid-template-columns: 280px 1fr;
+            }
+            .right-panel {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .app-container {
+                grid-template-columns: 1fr;
+            }
+            .left-panel {
+                order: 2;
+            }
+            .preview-area {
+                order: 1;
+                min-height: 400px;
+            }
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .modal-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1rem;
+            color: var(--accent-primary);
+            margin-bottom: 1rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+            justify-content: flex-end;
+        }
+
+        /* Notification toast */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--bg-tertiary);
+            border: 1px solid var(--accent-primary);
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-weight: 500;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1001;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <div class="logo-icon">⬡</div>
+            Sprite Forge
+        </div>
+    </header>
+
+    <div class="app-container">
+        <!-- Left Panel -->
+        <div class="panel left-panel">
+            <div class="tabs">
+                <button class="tab active" data-tab="spritesheet">Sheet</button>
+                <button class="tab" data-tab="frames">Frames</button>
+            </div>
+
+            <!-- Sprite Sheet Tab -->
+            <div id="spritesheet-tab" class="tab-content">
+                <div class="upload-zone" id="spritesheet-upload">
+                    <div class="upload-icon">📜</div>
+                    <div class="upload-text">Drop Sprite Sheet Here</div>
+                    <div class="upload-hint">or click to browse</div>
+                    <input type="file" class="hidden-input" id="spritesheet-input" accept="image/*">
+                </div>
+
+                <div class="settings-group" style="margin-top: 1rem;">
+                    <div class="settings-group-title">Sheet Configuration</div>
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label>Columns</label>
+                            <input type="number" id="sheet-cols" value="4" min="1" max="20">
+                        </div>
+                        <div class="input-group">
+                            <label>Rows</label>
+                            <input type="number" id="sheet-rows" value="4" min="1" max="20">
+                        </div>
+                    </div>
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label>Frame Width</label>
+                            <input type="number" id="frame-width" value="64" min="1">
+                        </div>
+                        <div class="input-group">
+                            <label>Frame Height</label>
+                            <input type="number" id="frame-height" value="64" min="1">
+                        </div>
+                    </div>
+                    <button class="btn btn-primary btn-block" id="extract-frames-btn">
+                        ⚡ Extract Frames
+                    </button>
+                </div>
+            </div>
+
+            <!-- Individual Frames Tab -->
+            <div id="frames-tab" class="tab-content" style="display: none;">
+                <div class="upload-zone" id="frames-upload">
+                    <div class="upload-icon">🖼️</div>
+                    <div class="upload-text">Drop Frame Images Here</div>
+                    <div class="upload-hint">Multiple images supported</div>
+                    <input type="file" class="hidden-input" id="frames-input" accept="image/*" multiple>
+                </div>
+
+                <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                    <button class="btn btn-secondary" id="clear-frames-btn" style="flex: 1;">
+                        🗑️ Clear All
+                    </button>
+                    <button class="btn btn-secondary" id="sort-frames-btn" style="flex: 1;">
+                        ↕️ Reorder
+                    </button>
+                </div>
+
+                <div class="frames-container" id="frames-list">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📁</div>
+                        <div>No frames loaded</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-title" style="margin-top: 1.5rem;">Animation Settings</div>
+            
+            <div class="settings-group">
+                <div class="toggle-group">
+                    <label class="toggle">
+                        <input type="checkbox" id="loop-toggle" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <span class="toggle-label">Loop Animation</span>
+                </div>
+                <div class="toggle-group">
+                    <label class="toggle">
+                        <input type="checkbox" id="pingpong-toggle">
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <span class="toggle-label">Ping-Pong</span>
+                </div>
+                <div class="toggle-group">
+                    <label class="toggle">
+                        <input type="checkbox" id="reverse-toggle">
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <span class="toggle-label">Reverse</span>
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <div class="input-group">
+                    <label>Frame Range (Start - End)</label>
+                    <div class="input-row" style="margin-bottom: 0;">
+                        <input type="number" id="range-start" value="1" min="1">
+                        <input type="number" id="range-end" value="16" min="1">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Center - Preview Area -->
+        <div class="panel preview-area">
+            <div class="preview-info" id="preview-info">No animation loaded</div>
+            
+            <div class="preview-canvas-container">
+                <canvas id="preview-canvas" class="preview-canvas" width="256" height="256"></canvas>
+                
+                <div class="zoom-controls">
+                    <button class="zoom-btn" id="zoom-out">−</button>
+                    <div class="zoom-value" id="zoom-value">100%</div>
+                    <button class="zoom-btn" id="zoom-in">+</button>
+                    <button class="zoom-btn" id="zoom-fit">⊡</button>
+                </div>
+            </div>
+
+            <!-- Timeline -->
+            <div class="timeline">
+                <div class="timeline-title">Timeline</div>
+                <div class="timeline-track" id="timeline-track">
+                    <!-- Frames will be inserted here -->
+                </div>
+            </div>
+
+            <!-- Playback Controls -->
+            <div class="playback-controls">
+                <button class="playback-btn" id="first-frame-btn" title="First Frame">⏮</button>
+                <button class="playback-btn" id="prev-frame-btn" title="Previous Frame">◀</button>
+                <button class="playback-btn play-pause" id="play-pause-btn" title="Play/Pause">▶</button>
+                <button class="playback-btn" id="next-frame-btn" title="Next Frame">▶</button>
+                <button class="playback-btn" id="last-frame-btn" title="Last Frame">⏭</button>
+
+                <div class="speed-control">
+                    <label>FPS</label>
+                    <input type="range" class="speed-slider" id="fps-slider" min="1" max="60" value="12">
+                    <div class="speed-value" id="fps-value">12</div>
+                </div>
+
+                <div class="frame-counter">
+                    Frame <span id="current-frame-num">0</span> / <span id="total-frames-num">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel -->
+        <div class="panel right-panel">
+            <div class="panel-title">Sequences</div>
+            
+            <button class="btn btn-primary btn-block" id="new-sequence-btn" style="margin-bottom: 1rem;">
+                + New Sequence
+            </button>
+
+            <div id="sequences-list">
+                <div class="sequence-item active" data-id="default">
+                    <div class="sequence-name">
+                        <span>All Frames</span>
+                        <div class="sequence-actions">
+                            <button title="Edit">✎</button>
+                            <button title="Duplicate">⧉</button>
+                        </div>
+                    </div>
+                    <div class="sequence-info">Frames 1-16 • Loop</div>
+                </div>
+            </div>
+
+            <div class="panel-title" style="margin-top: 1.5rem;">Export</div>
+            
+            <div class="export-options">
+                <div class="input-group" style="margin-bottom: 0.75rem;">
+                    <label>Export Format</label>
+                    <select id="export-format">
+                        <option value="png">PNG Sprite Sheet</option>
+                        <option value="gif">Animated GIF</option>
+                        <option value="zip">ZIP (Individual Frames)</option>
+                    </select>
+                </div>
+                <div class="input-row">
+                    <div class="input-group">
+                        <label>Sheet Columns</label>
+                        <input type="number" id="export-cols" value="4" min="1">
+                    </div>
+                    <div class="input-group">
+                        <label>Scale</label>
+                        <select id="export-scale">
+                            <option value="1">1x</option>
+                            <option value="2">2x</option>
+                            <option value="4">4x</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn btn-success btn-block" id="export-btn">
+                    📥 Export
+                </button>
+            </div>
+
+            <div class="panel-title" style="margin-top: 1.5rem;">Background</div>
+            
+            <div class="settings-group">
+                <div class="input-group">
+                    <label>Preview Background</label>
+                    <select id="bg-select">
+                        <option value="checker">Checkerboard</option>
+                        <option value="black">Black</option>
+                        <option value="white">White</option>
+                        <option value="magenta">Magenta</option>
+                        <option value="custom">Custom Color</option>
+                    </select>
+                </div>
+                <div class="input-group" id="custom-bg-group" style="display: none;">
+                    <label>Custom Color</label>
+                    <input type="color" id="custom-bg-color" value="#333333">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Sequence Modal -->
+    <div class="modal-overlay" id="sequence-modal">
+        <div class="modal">
+            <div class="modal-title">Create Animation Sequence</div>
+            <div class="input-group" style="margin-bottom: 1rem;">
+                <label>Sequence Name</label>
+                <input type="text" id="sequence-name" placeholder="e.g., Walk Cycle">
+            </div>
+            <div class="input-row">
+                <div class="input-group">
+                    <label>Start Frame</label>
+                    <input type="number" id="seq-start" value="1" min="1">
+                </div>
+                <div class="input-group">
+                    <label>End Frame</label>
+                    <input type="number" id="seq-end" value="4" min="1">
+                </div>
+            </div>
+            <div class="input-group" style="margin-top: 0.75rem;">
+                <label>FPS</label>
+                <input type="number" id="seq-fps" value="12" min="1" max="60">
+            </div>
+            <div class="toggle-group" style="margin-top: 1rem;">
+                <label class="toggle">
+                    <input type="checkbox" id="seq-loop" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+                <span class="toggle-label">Loop</span>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" id="cancel-sequence-btn">Cancel</button>
+                <button class="btn btn-primary" id="save-sequence-btn">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // =====================================================
+        // SPRITE FORGE - Animation Studio
+        // =====================================================
+
+        class SpriteForge {
+            constructor() {
+                this.frames = [];
+                this.currentFrame = 0;
+                this.isPlaying = false;
+                this.fps = 12;
+                this.loop = true;
+                this.pingPong = false;
+                this.reverse = false;
+                this.pingPongDirection = 1;
+                this.zoom = 1;
+                this.spriteSheetImage = null;
+                this.sequences = [
+                    { id: 'default', name: 'All Frames', start: 1, end: 16, fps: 12, loop: true }
+                ];
+                this.activeSequence = 'default';
+                this.rangeStart = 1;
+                this.rangeEnd = 16;
+                this.animationId = null;
+                this.lastFrameTime = 0;
+                this.backgroundColor = 'checker';
+                this.customBgColor = '#333333';
+
+                this.initElements();
+                this.initEventListeners();
+                this.render();
+            }
+
+            initElements() {
+                // Canvas
+                this.canvas = document.getElementById('preview-canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.ctx.imageSmoothingEnabled = false;
+
+                // Tabs
+                this.tabs = document.querySelectorAll('.tab');
+                this.tabContents = {
+                    spritesheet: document.getElementById('spritesheet-tab'),
+                    frames: document.getElementById('frames-tab')
+                };
+
+                // Upload zones
+                this.spritesheetUpload = document.getElementById('spritesheet-upload');
+                this.spritesheetInput = document.getElementById('spritesheet-input');
+                this.framesUpload = document.getElementById('frames-upload');
+                this.framesInput = document.getElementById('frames-input');
+
+                // Sheet settings
+                this.sheetCols = document.getElementById('sheet-cols');
+                this.sheetRows = document.getElementById('sheet-rows');
+                this.frameWidth = document.getElementById('frame-width');
+                this.frameHeight = document.getElementById('frame-height');
+
+                // Playback controls
+                this.playPauseBtn = document.getElementById('play-pause-btn');
+                this.fpsSlider = document.getElementById('fps-slider');
+                this.fpsValue = document.getElementById('fps-value');
+                this.currentFrameNum = document.getElementById('current-frame-num');
+                this.totalFramesNum = document.getElementById('total-frames-num');
+
+                // Animation settings
+                this.loopToggle = document.getElementById('loop-toggle');
+                this.pingPongToggle = document.getElementById('pingpong-toggle');
+                this.reverseToggle = document.getElementById('reverse-toggle');
+                this.rangeStartInput = document.getElementById('range-start');
+                this.rangeEndInput = document.getElementById('range-end');
+
+                // Containers
+                this.framesList = document.getElementById('frames-list');
+                this.timelineTrack = document.getElementById('timeline-track');
+                this.sequencesList = document.getElementById('sequences-list');
+                this.previewInfo = document.getElementById('preview-info');
+            }
+
+            initEventListeners() {
+                // Tab switching
+                this.tabs.forEach(tab => {
+                    tab.addEventListener('click', () => this.switchTab(tab.dataset.tab));
+                });
+
+                // Sprite sheet upload
+                this.spritesheetUpload.addEventListener('click', () => this.spritesheetInput.click());
+                this.spritesheetInput.addEventListener('change', (e) => this.handleSpriteSheetUpload(e));
+                this.setupDragDrop(this.spritesheetUpload, this.handleSpriteSheetUpload.bind(this));
+
+                // Frames upload
+                this.framesUpload.addEventListener('click', () => this.framesInput.click());
+                this.framesInput.addEventListener('change', (e) => this.handleFramesUpload(e));
+                this.setupDragDrop(this.framesUpload, this.handleFramesUpload.bind(this));
+
+                // Extract frames button
+                document.getElementById('extract-frames-btn').addEventListener('click', () => this.extractFrames());
+
+                // Clear frames
+                document.getElementById('clear-frames-btn').addEventListener('click', () => this.clearFrames());
+
+                // Playback controls
+                this.playPauseBtn.addEventListener('click', () => this.togglePlay());
+                document.getElementById('first-frame-btn').addEventListener('click', () => this.goToFrame(0));
+                document.getElementById('prev-frame-btn').addEventListener('click', () => this.prevFrame());
+                document.getElementById('next-frame-btn').addEventListener('click', () => this.nextFrame());
+                document.getElementById('last-frame-btn').addEventListener('click', () => this.goToFrame(this.frames.length - 1));
+
+                // FPS slider
+                this.fpsSlider.addEventListener('input', (e) => {
+                    this.fps = parseInt(e.target.value);
+                    this.fpsValue.textContent = this.fps;
+                });
+
+                // Animation settings
+                this.loopToggle.addEventListener('change', (e) => this.loop = e.target.checked);
+                this.pingPongToggle.addEventListener('change', (e) => this.pingPong = e.target.checked);
+                this.reverseToggle.addEventListener('change', (e) => {
+                    this.reverse = e.target.checked;
+                    if (this.reverse && !this.isPlaying) {
+                        this.currentFrame = this.frames.length - 1;
+                    }
+                });
+
+                // Range inputs
+                this.rangeStartInput.addEventListener('change', (e) => {
+                    this.rangeStart = Math.max(1, parseInt(e.target.value));
+                    this.updateActiveFrameRange();
+                });
+                this.rangeEndInput.addEventListener('change', (e) => {
+                    this.rangeEnd = Math.min(this.frames.length, parseInt(e.target.value));
+                    this.updateActiveFrameRange();
+                });
+
+                // Zoom controls
+                document.getElementById('zoom-in').addEventListener('click', () => this.setZoom(this.zoom + 0.5));
+                document.getElementById('zoom-out').addEventListener('click', () => this.setZoom(this.zoom - 0.5));
+                document.getElementById('zoom-fit').addEventListener('click', () => this.setZoom(1));
+
+                // Background select
+                document.getElementById('bg-select').addEventListener('change', (e) => {
+                    this.backgroundColor = e.target.value;
+                    document.getElementById('custom-bg-group').style.display = 
+                        e.target.value === 'custom' ? 'block' : 'none';
+                    this.render();
+                });
+                document.getElementById('custom-bg-color').addEventListener('input', (e) => {
+                    this.customBgColor = e.target.value;
+                    this.render();
+                });
+
+                // New sequence
+                document.getElementById('new-sequence-btn').addEventListener('click', () => {
+                    document.getElementById('sequence-modal').classList.add('active');
+                });
+                document.getElementById('cancel-sequence-btn').addEventListener('click', () => {
+                    document.getElementById('sequence-modal').classList.remove('active');
+                });
+                document.getElementById('save-sequence-btn').addEventListener('click', () => this.saveSequence());
+
+                // Export
+                document.getElementById('export-btn').addEventListener('click', () => this.exportAnimation());
+
+                // Keyboard shortcuts
+                document.addEventListener('keydown', (e) => {
+                    if (e.target.tagName === 'INPUT') return;
+                    switch(e.code) {
+                        case 'Space': e.preventDefault(); this.togglePlay(); break;
+                        case 'ArrowLeft': this.prevFrame(); break;
+                        case 'ArrowRight': this.nextFrame(); break;
+                        case 'Home': this.goToFrame(0); break;
+                        case 'End': this.goToFrame(this.frames.length - 1); break;
+                    }
+                });
+            }
+
+            setupDragDrop(element, handler) {
+                ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                    element.addEventListener(eventName, (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    });
+                });
+
+                ['dragenter', 'dragover'].forEach(eventName => {
+                    element.addEventListener(eventName, () => element.classList.add('dragover'));
+                });
+
+                ['dragleave', 'drop'].forEach(eventName => {
+                    element.addEventListener(eventName, () => element.classList.remove('dragover'));
+                });
+
+                element.addEventListener('drop', (e) => {
+                    const files = e.dataTransfer.files;
+                    handler({ target: { files } });
+                });
+            }
+
+            switchTab(tabName) {
+                this.tabs.forEach(t => t.classList.remove('active'));
+                document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+                
+                Object.values(this.tabContents).forEach(content => content.style.display = 'none');
+                this.tabContents[tabName].style.display = 'block';
+            }
+
+            handleSpriteSheetUpload(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        this.spriteSheetImage = img;
+                        
+                        // Auto-detect frame size
+                        const cols = parseInt(this.sheetCols.value);
+                        const rows = parseInt(this.sheetRows.value);
+                        this.frameWidth.value = Math.floor(img.width / cols);
+                        this.frameHeight.value = Math.floor(img.height / rows);
+                        
+                        this.showToast('Sprite sheet loaded! Click "Extract Frames" to continue.');
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+
+            extractFrames() {
+                if (!this.spriteSheetImage) {
+                    this.showToast('Please upload a sprite sheet first!');
+                    return;
+                }
+
+                const cols = parseInt(this.sheetCols.value);
+                const rows = parseInt(this.sheetRows.value);
+                const fw = parseInt(this.frameWidth.value);
+                const fh = parseInt(this.frameHeight.value);
+
+                this.frames = [];
+
+                for (let row = 0; row < rows; row++) {
+                    for (let col = 0; col < cols; col++) {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = fw;
+                        canvas.height = fh;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(
+                            this.spriteSheetImage,
+                            col * fw, row * fh, fw, fh,
+                            0, 0, fw, fh
+                        );
+                        this.frames.push({
+                            id: Date.now() + Math.random(),
+                            canvas: canvas,
+                            dataUrl: canvas.toDataURL()
+                        });
+                    }
+                }
+
+                this.rangeEnd = this.frames.length;
+                this.rangeEndInput.value = this.frames.length;
+                this.updateUI();
+                this.showToast(`Extracted ${this.frames.length} frames!`);
+            }
+
+            handleFramesUpload(e) {
+                const files = Array.from(e.target.files);
+                if (!files.length) return;
+
+                // Sort files by name
+                files.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+
+                let loaded = 0;
+                files.forEach((file, index) => {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            const canvas = document.createElement('canvas');
+                            canvas.width = img.width;
+                            canvas.height = img.height;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0);
+
+                            this.frames.push({
+                                id: Date.now() + Math.random(),
+                                canvas: canvas,
+                                dataUrl: canvas.toDataURL(),
+                                name: file.name
+                            });
+
+                            loaded++;
+                            if (loaded === files.length) {
+                                // Sort by original file order
+                                this.frames.sort((a, b) => {
+                                    const aIndex = files.findIndex(f => f.name === a.name);
+                                    const bIndex = files.findIndex(f => f.name === b.name);
+                                    return aIndex - bIndex;
+                                });
+                                
+                                this.rangeEnd = this.frames.length;
+                                this.rangeEndInput.value = this.frames.length;
+                                this.updateUI();
+                                this.showToast(`Loaded ${files.length} frames!`);
+                            }
+                        };
+                        img.src = event.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            clearFrames() {
+                this.frames = [];
+                this.currentFrame = 0;
+                this.stop();
+                this.updateUI();
+                this.showToast('All frames cleared');
+            }
+
+            updateUI() {
+                this.updateFramesList();
+                this.updateTimeline();
+                this.updateInfo();
+                this.render();
+            }
+
+            updateFramesList() {
+                if (this.frames.length === 0) {
+                    this.framesList.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📁</div>
+                            <div>No frames loaded</div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                this.framesList.innerHTML = this.frames.map((frame, index) => `
+                    <div class="frame-item ${index === this.currentFrame ? 'selected' : ''}" 
+                         data-index="${index}">
+                        <img src="${frame.dataUrl}" alt="Frame ${index + 1}">
+                        <span class="frame-number">${index + 1}</span>
+                        <button class="delete-frame" data-index="${index}">×</button>
+                    </div>
+                `).join('');
+
+                // Add click handlers
+                this.framesList.querySelectorAll('.frame-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        if (!e.target.classList.contains('delete-frame')) {
+                            this.goToFrame(parseInt(item.dataset.index));
+                        }
+                    });
+                });
+
+                this.framesList.querySelectorAll('.delete-frame').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.deleteFrame(parseInt(btn.dataset.index));
+                    });
+                });
+            }
+
+            updateTimeline() {
+                if (this.frames.length === 0) {
+                    this.timelineTrack.innerHTML = '';
+                    return;
+                }
+
+                this.timelineTrack.innerHTML = this.frames.map((frame, index) => `
+                    <div class="timeline-frame ${index === this.currentFrame ? 'active' : ''}" 
+                         data-index="${index}">
+                        <img src="${frame.dataUrl}" alt="Frame ${index + 1}">
+                    </div>
+                `).join('');
+
+                this.timelineTrack.querySelectorAll('.timeline-frame').forEach(item => {
+                    item.addEventListener('click', () => {
+                        this.goToFrame(parseInt(item.dataset.index));
+                    });
+                });
+            }
+
+            updateInfo() {
+                this.totalFramesNum.textContent = this.frames.length;
+                this.currentFrameNum.textContent = this.frames.length > 0 ? this.currentFrame + 1 : 0;
+
+                if (this.frames.length > 0) {
+                    const frame = this.frames[0];
+                    this.previewInfo.textContent = `${frame.canvas.width} × ${frame.canvas.height} | ${this.frames.length} frames`;
+                } else {
+                    this.previewInfo.textContent = 'No animation loaded';
+                }
+            }
+
+            deleteFrame(index) {
+                this.frames.splice(index, 1);
+                if (this.currentFrame >= this.frames.length) {
+                    this.currentFrame = Math.max(0, this.frames.length - 1);
+                }
+                this.rangeEnd = this.frames.length;
+                this.rangeEndInput.value = this.frames.length;
+                this.updateUI();
+            }
+
+            goToFrame(index) {
+                if (this.frames.length === 0) return;
+                this.currentFrame = Math.max(0, Math.min(this.frames.length - 1, index));
+                this.updateTimeline();
+                this.updateFramesList();
+                this.currentFrameNum.textContent = this.currentFrame + 1;
+                this.render();
+            }
+
+            prevFrame() {
+                if (this.currentFrame > 0) {
+                    this.goToFrame(this.currentFrame - 1);
+                } else if (this.loop) {
+                    this.goToFrame(this.frames.length - 1);
+                }
+            }
+
+            nextFrame() {
+                if (this.currentFrame < this.frames.length - 1) {
+                    this.goToFrame(this.currentFrame + 1);
+                } else if (this.loop) {
+                    this.goToFrame(0);
+                }
+            }
+
+            togglePlay() {
+                if (this.isPlaying) {
+                    this.stop();
+                } else {
+                    this.play();
+                }
+            }
+
+            play() {
+                if (this.frames.length === 0) return;
+                this.isPlaying = true;
+                this.playPauseBtn.textContent = '⏸';
+                this.lastFrameTime = performance.now();
+                this.animate();
+            }
+
+            stop() {
+                this.isPlaying = false;
+                this.playPauseBtn.textContent = '▶';
+                if (this.animationId) {
+                    cancelAnimationFrame(this.animationId);
+                }
+            }
+
+            animate() {
+                if (!this.isPlaying) return;
+
+                const now = performance.now();
+                const elapsed = now - this.lastFrameTime;
+                const frameInterval = 1000 / this.fps;
+
+                if (elapsed >= frameInterval) {
+                    this.lastFrameTime = now - (elapsed % frameInterval);
+                    this.advanceFrame();
+                }
+
+                this.animationId = requestAnimationFrame(() => this.animate());
+            }
+
+            advanceFrame() {
+                const start = this.rangeStart - 1;
+                const end = this.rangeEnd - 1;
+                const rangeLength = end - start + 1;
+
+                if (this.pingPong) {
+                    this.currentFrame += this.pingPongDirection * (this.reverse ? -1 : 1);
+                    
+                    if (this.currentFrame >= end) {
+                        this.currentFrame = end;
+                        this.pingPongDirection = -1;
+                    } else if (this.currentFrame <= start) {
+                        this.currentFrame = start;
+                        this.pingPongDirection = 1;
+                        if (!this.loop) this.stop();
+                    }
+                } else if (this.reverse) {
+                    this.currentFrame--;
+                    if (this.currentFrame < start) {
+                        if (this.loop) {
+                            this.currentFrame = end;
+                        } else {
+                            this.currentFrame = start;
+                            this.stop();
+                        }
+                    }
+                } else {
+                    this.currentFrame++;
+                    if (this.currentFrame > end) {
+                        if (this.loop) {
+                            this.currentFrame = start;
+                        } else {
+                            this.currentFrame = end;
+                            this.stop();
+                        }
+                    }
+                }
+
+                this.updateTimeline();
+                this.updateFramesList();
+                this.currentFrameNum.textContent = this.currentFrame + 1;
+                this.render();
+            }
+
+            updateActiveFrameRange() {
+                if (this.currentFrame < this.rangeStart - 1) {
+                    this.currentFrame = this.rangeStart - 1;
+                }
+                if (this.currentFrame > this.rangeEnd - 1) {
+                    this.currentFrame = this.rangeEnd - 1;
+                }
+                this.render();
+            }
+
+            setZoom(value) {
+                this.zoom = Math.max(0.5, Math.min(4, value));
+                document.getElementById('zoom-value').textContent = Math.round(this.zoom * 100) + '%';
+                this.render();
+            }
+
+            render() {
+                if (this.frames.length === 0) {
+                    this.canvas.width = 256;
+                    this.canvas.height = 256;
+                    this.ctx.fillStyle = '#1a1a25';
+                    this.ctx.fillRect(0, 0, 256, 256);
+                    this.ctx.fillStyle = '#555566';
+                    this.ctx.font = '16px Rajdhani';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.fillText('No frames loaded', 128, 128);
+                    return;
+                }
+
+                const frame = this.frames[this.currentFrame];
+                const w = Math.floor(frame.canvas.width * this.zoom);
+                const h = Math.floor(frame.canvas.height * this.zoom);
+
+                this.canvas.width = w;
+                this.canvas.height = h;
+                this.ctx.imageSmoothingEnabled = false;
+
+                // Draw background
+                this.drawBackground(w, h);
+
+                // Draw frame
+                this.ctx.drawImage(frame.canvas, 0, 0, w, h);
+            }
+
+            drawBackground(w, h) {
+                switch (this.backgroundColor) {
+                    case 'checker':
+                        const size = 10 * this.zoom;
+                        for (let y = 0; y < h; y += size) {
+                            for (let x = 0; x < w; x += size) {
+                                this.ctx.fillStyle = ((x + y) / size) % 2 === 0 ? '#1a1a25' : '#12121a';
+                                this.ctx.fillRect(x, y, size, size);
+                            }
+                        }
+                        break;
+                    case 'black':
+                        this.ctx.fillStyle = '#000000';
+                        this.ctx.fillRect(0, 0, w, h);
+                        break;
+                    case 'white':
+                        this.ctx.fillStyle = '#ffffff';
+                        this.ctx.fillRect(0, 0, w, h);
+                        break;
+                    case 'magenta':
+                        this.ctx.fillStyle = '#ff00ff';
+                        this.ctx.fillRect(0, 0, w, h);
+                        break;
+                    case 'custom':
+                        this.ctx.fillStyle = this.customBgColor;
+                        this.ctx.fillRect(0, 0, w, h);
+                        break;
+                }
+            }
+
+            saveSequence() {
+                const name = document.getElementById('sequence-name').value || 'Untitled';
+                const start = parseInt(document.getElementById('seq-start').value);
+                const end = parseInt(document.getElementById('seq-end').value);
+                const fps = parseInt(document.getElementById('seq-fps').value);
+                const loop = document.getElementById('seq-loop').checked;
+
+                const sequence = {
+                    id: 'seq_' + Date.now(),
+                    name,
+                    start,
+                    end,
+                    fps,
+                    loop
+                };
+
+                this.sequences.push(sequence);
+                this.updateSequencesList();
+                document.getElementById('sequence-modal').classList.remove('active');
+                this.showToast(`Sequence "${name}" created!`);
+            }
+
+            updateSequencesList() {
+                this.sequencesList.innerHTML = this.sequences.map(seq => `
+                    <div class="sequence-item ${seq.id === this.activeSequence ? 'active' : ''}" 
+                         data-id="${seq.id}">
+                        <div class="sequence-name">
+                            <span>${seq.name}</span>
+                            <div class="sequence-actions">
+                                <button title="Edit">✎</button>
+                                <button title="Duplicate">⧉</button>
+                                ${seq.id !== 'default' ? '<button title="Delete" class="delete-seq">×</button>' : ''}
+                            </div>
+                        </div>
+                        <div class="sequence-info">Frames ${seq.start}-${seq.end} • ${seq.loop ? 'Loop' : 'Once'}</div>
+                    </div>
+                `).join('');
+
+                this.sequencesList.querySelectorAll('.sequence-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        if (!e.target.closest('.sequence-actions')) {
+                            this.loadSequence(item.dataset.id);
+                        }
+                    });
+                });
+            }
+
+            loadSequence(id) {
+                const seq = this.sequences.find(s => s.id === id);
+                if (!seq) return;
+
+                this.activeSequence = id;
+                this.rangeStart = seq.start;
+                this.rangeEnd = Math.min(seq.end, this.frames.length);
+                this.fps = seq.fps;
+                this.loop = seq.loop;
+
+                this.rangeStartInput.value = this.rangeStart;
+                this.rangeEndInput.value = this.rangeEnd;
+                this.fpsSlider.value = this.fps;
+                this.fpsValue.textContent = this.fps;
+                this.loopToggle.checked = this.loop;
+
+                this.currentFrame = this.rangeStart - 1;
+                this.updateSequencesList();
+                this.render();
+            }
+
+            exportAnimation() {
+                if (this.frames.length === 0) {
+                    this.showToast('No frames to export!');
+                    return;
+                }
+
+                const format = document.getElementById('export-format').value;
+                const cols = parseInt(document.getElementById('export-cols').value);
+                const scale = parseInt(document.getElementById('export-scale').value);
+
+                switch (format) {
+                    case 'png':
+                        this.exportAsPNG(cols, scale);
+                        break;
+                    case 'gif':
+                        this.exportAsGIF(scale);
+                        break;
+                    case 'zip':
+                        this.exportAsZIP(scale);
+                        break;
+                }
+            }
+
+            exportAsPNG(cols, scale) {
+                const frameW = this.frames[0].canvas.width * scale;
+                const frameH = this.frames[0].canvas.height * scale;
+                const rows = Math.ceil(this.frames.length / cols);
+
+                const canvas = document.createElement('canvas');
+                canvas.width = cols * frameW;
+                canvas.height = rows * frameH;
+                const ctx = canvas.getContext('2d');
+                ctx.imageSmoothingEnabled = false;
+
+                this.frames.forEach((frame, i) => {
+                    const col = i % cols;
+                    const row = Math.floor(i / cols);
+                    ctx.drawImage(frame.canvas, col * frameW, row * frameH, frameW, frameH);
+                });
+
+                const link = document.createElement('a');
+                link.download = 'spritesheet.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+
+                this.showToast('Sprite sheet exported!');
+            }
+
+            exportAsGIF(scale) {
+                // Simple GIF export using canvas frames
+                // Note: Full GIF encoding would require a library like gif.js
+                this.showToast('GIF export requires gif.js library. Exporting as PNG instead.');
+                this.exportAsPNG(parseInt(document.getElementById('export-cols').value), scale);
+            }
+
+            exportAsZIP(scale) {
+                // ZIP export would require JSZip library
+                // For now, offer individual downloads
+                this.showToast('ZIP export requires JSZip. Downloading individual frames...');
+                
+                this.frames.forEach((frame, i) => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = frame.canvas.width * scale;
+                    canvas.height = frame.canvas.height * scale;
+                    const ctx = canvas.getContext('2d');
+                    ctx.imageSmoothingEnabled = false;
+                    ctx.drawImage(frame.canvas, 0, 0, canvas.width, canvas.height);
+
+                    setTimeout(() => {
+                        const link = document.createElement('a');
+                        link.download = `frame_${String(i + 1).padStart(3, '0')}.png`;
+                        link.href = canvas.toDataURL('image/png');
+                        link.click();
+                    }, i * 100);
+                });
+            }
+
+            showToast(message) {
+                const toast = document.getElementById('toast');
+                toast.textContent = message;
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 3000);
+            }
+        }
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', () => {
+            window.spriteForge = new SpriteForge();
+        });
+    </script>
+</body>
+</html>
