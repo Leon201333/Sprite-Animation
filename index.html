@@ -737,11 +737,11 @@
         <div class="form-row" style="margin-bottom: 8px;">
           <div class="form-group">
             <label>Columns</label>
-            <input type="number" id="sheetCols" value="4" min="1" oninput="updateSheetPreview()">
+            <input type="number" id="sheetCols" value="4" min="1" oninput="onGridSettingChange()">
           </div>
           <div class="form-group">
             <label>Rows</label>
-            <input type="number" id="sheetRows" value="4" min="1" oninput="updateSheetPreview()">
+            <input type="number" id="sheetRows" value="4" min="1" oninput="onGridSettingChange()">
           </div>
         </div>
 
@@ -772,22 +772,22 @@
           <div class="form-row" style="margin-bottom: 8px;">
             <div class="form-group">
               <label>Spacing X</label>
-              <input type="number" id="spacingX" value="0" min="0" oninput="updateSheetPreview()" title="Horizontal gap between frames (px)">
+              <input type="number" id="spacingX" value="0" min="0" oninput="onGridSettingChange()" title="Horizontal gap between frames (px)">
             </div>
             <div class="form-group">
               <label>Spacing Y</label>
-              <input type="number" id="spacingY" value="0" min="0" oninput="updateSheetPreview()" title="Vertical gap between frames (px)">
+              <input type="number" id="spacingY" value="0" min="0" oninput="onGridSettingChange()" title="Vertical gap between frames (px)">
             </div>
           </div>
 
           <div class="form-row" style="margin-bottom: 8px;">
             <div class="form-group">
               <label>Offset X</label>
-              <input type="number" id="offsetX" value="0" min="0" oninput="updateSheetPreview()" title="Left margin before first frame (px)">
+              <input type="number" id="offsetX" value="0" min="0" oninput="onGridSettingChange()" title="Left margin before first frame (px)">
             </div>
             <div class="form-group">
               <label>Offset Y</label>
-              <input type="number" id="offsetY" value="0" min="0" oninput="updateSheetPreview()" title="Top margin before first frame (px)">
+              <input type="number" id="offsetY" value="0" min="0" oninput="onGridSettingChange()" title="Top margin before first frame (px)">
             </div>
           </div>
         </div>
@@ -1106,6 +1106,11 @@ function autoDetectGrid() {
 
   document.getElementById('frameWidth').value = Math.max(1, fw);
   document.getElementById('frameHeight').value = Math.max(1, fh);
+}
+
+function onGridSettingChange() {
+  autoDetectGrid();
+  updateSheetPreview();
 }
 
 // ─── SHEET PREVIEW WITH GRID OVERLAY ───
